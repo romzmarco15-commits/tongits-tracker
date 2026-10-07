@@ -384,7 +384,7 @@ function renderSetupPlayers() {
                     type="number"
                     inputmode="decimal"
                     min="0"
-                    step="0.01"
+                    step="1"
                     value="${escapeAttribute(
                         player.money
                     )}"
@@ -1401,7 +1401,7 @@ function renderFightPlayers() {
             ${opponents.map(({ player, index }) => fightSelectedPlayers.includes(index) ? `
                 <div class="ios-list-row fight-amount-row">
                     <div><strong>${escapeHtml(player.name)}</strong><div class="ios-row-note">Fight payment</div></div>
-                    <input id="fightAmount${index}" class="select-on-focus fight-inline-input" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Amount" value="${escapeAttribute(fightAmounts[index] ?? "")}">
+                    <input id="fightAmount${index}" class="select-on-focus fight-inline-input" type="number" inputmode="decimal" min="0" step="1" placeholder="Amount" value="${escapeAttribute(fightAmounts[index] ?? "")}">
                 </div>` : `
                 <div class="ios-list-row fight-default-row">
                     <div><strong>${escapeHtml(player.name)}</strong><div class="ios-row-note">Did not fight</div></div>
