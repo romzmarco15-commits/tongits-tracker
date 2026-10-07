@@ -7,8 +7,7 @@ const AVATARS = [
 const MIN_PLAYERS = 2;
 const MAX_PLAYERS = 6;
 
-const THEME_KEY =
-    "tongitsTrackerTheme";
+const THEME_KEY = "tongitsTrackerTheme";
 
 let setupPlayerCount = 3;
 let setupPlayerData = [];
@@ -52,9 +51,7 @@ function createEmojiAvatar(emoji) {
 }
 
 function avatarContent(avatar) {
-    if (
-        typeof avatar === "string"
-    ) {
+    if (typeof avatar === "string") {
         return escapeHtml(avatar);
     }
 
@@ -155,7 +152,7 @@ function updateThemeButtons() {
 
 
 /* =========================================
-   OVERLAYS
+   OVERLAY
 ========================================= */
 
 function openOverlay(id) {
@@ -181,9 +178,7 @@ function showMessage(title, text) {
         "messageText"
     ).textContent = text;
 
-    openOverlay(
-        "messageOverlay"
-    );
+    openOverlay("messageOverlay");
 }
 
 
@@ -200,16 +195,13 @@ function initializeSetupData() {
         i++
     ) {
         setupPlayerData.push({
-            name:
-                `Player ${i + 1}`,
-
+            name: `Player ${i + 1}`,
             money: 100,
 
             avatar:
                 createEmojiAvatar(
                     AVATARS[
-                        i %
-                        AVATARS.length
+                        i % AVATARS.length
                     ]
                 )
         });
@@ -231,9 +223,7 @@ function loadCurrentGameIntoSetup() {
         i < MAX_PLAYERS;
         i++
     ) {
-        if (
-            i < game.players.length
-        ) {
+        if (i < game.players.length) {
             const player =
                 game.players[i];
 
@@ -245,9 +235,7 @@ function loadCurrentGameIntoSetup() {
                     player.startingBalance,
 
                 avatar:
-                    clone(
-                        player.avatar
-                    )
+                    clone(player.avatar)
             });
 
         } else {
@@ -260,8 +248,7 @@ function loadCurrentGameIntoSetup() {
                 avatar:
                     createEmojiAvatar(
                         AVATARS[
-                            i %
-                            AVATARS.length
+                            i % AVATARS.length
                         ]
                     )
             });
@@ -270,18 +257,15 @@ function loadCurrentGameIntoSetup() {
 
     document.getElementById(
         "initialPot"
-    ).value =
-        game.initialPot;
+    ).value = game.initialPot;
 
     document.getElementById(
         "roundPot"
-    ).value =
-        game.rules.roundPot;
+    ).value = game.rules.roundPot;
 
     document.getElementById(
         "currency"
-    ).value =
-        game.currency;
+    ).value = game.currency;
 
     renderSetupPlayers();
 }
@@ -336,9 +320,7 @@ function renderSetupPlayers() {
             setupPlayerData[i];
 
         const card =
-            document.createElement(
-                "div"
-            );
+            document.createElement("div");
 
         card.className =
             "setup-card";
@@ -441,8 +423,7 @@ function changePlayerCount(change) {
             MIN_PLAYERS,
             Math.min(
                 MAX_PLAYERS,
-                setupPlayerCount +
-                    change
+                setupPlayerCount + change
             )
         );
 
@@ -475,8 +456,7 @@ function activateSelectOnFocus() {
                 "focus",
                 function () {
 
-                    const element =
-                        this;
+                    const element = this;
 
                     setTimeout(
                         () => {
@@ -502,7 +482,7 @@ function activateSelectOnFocus() {
 
 
 /* =========================================
-   AVATAR
+   AVATAR PICKER
 ========================================= */
 
 function openAvatarPicker(playerIndex) {
@@ -542,8 +522,7 @@ function openAvatarPicker(playerIndex) {
             );
         }
 
-        button.textContent =
-            emoji;
+        button.textContent = emoji;
 
         button.addEventListener(
             "click",
@@ -572,9 +551,7 @@ function openAvatarPicker(playerIndex) {
         );
     });
 
-    openOverlay(
-        "avatarOverlay"
-    );
+    openOverlay("avatarOverlay");
 }
 
 function resizePlayerPhoto(file) {
@@ -600,11 +577,8 @@ function resizePlayerPhoto(file) {
                                     "canvas"
                                 );
 
-                            canvas.width =
-                                size;
-
-                            canvas.height =
-                                size;
+                            canvas.width = size;
+                            canvas.height = size;
 
                             const ctx =
                                 canvas.getContext(
@@ -660,12 +634,9 @@ function resizePlayerPhoto(file) {
                         event.target.result;
                 };
 
-            reader.onerror =
-                reject;
+            reader.onerror = reject;
 
-            reader.readAsDataURL(
-                file
-            );
+            reader.readAsDataURL(file);
         }
     );
 }
@@ -679,18 +650,12 @@ function showGame() {
     editingExistingGame = false;
 
     document
-        .getElementById(
-            "setupScreen"
-        )
-        .classList
-        .add("hidden");
+        .getElementById("setupScreen")
+        .classList.add("hidden");
 
     document
-        .getElementById(
-            "gameScreen"
-        )
-        .classList
-        .remove("hidden");
+        .getElementById("gameScreen")
+        .classList.remove("hidden");
 
     renderGame();
 }
@@ -700,8 +665,7 @@ function showFreshSetup() {
 
     document.getElementById(
         "setupTitle"
-    ).textContent =
-        "New Game";
+    ).textContent = "New Game";
 
     document.getElementById(
         "setupSubtitle"
@@ -710,28 +674,19 @@ function showFreshSetup() {
 
     document.getElementById(
         "startGameButton"
-    ).textContent =
-        "START GAME";
+    ).textContent = "START GAME";
 
     document.getElementById(
         "backToGameButton"
-    ).classList.add(
-        "hidden"
-    );
+    ).classList.add("hidden");
 
     document
-        .getElementById(
-            "gameScreen"
-        )
-        .classList
-        .add("hidden");
+        .getElementById("gameScreen")
+        .classList.add("hidden");
 
     document
-        .getElementById(
-            "setupScreen"
-        )
-        .classList
-        .remove("hidden");
+        .getElementById("setupScreen")
+        .classList.remove("hidden");
 
     renderSetupPlayers();
 }
@@ -760,23 +715,15 @@ function showEditPlayersSetup() {
 
     document.getElementById(
         "backToGameButton"
-    ).classList.remove(
-        "hidden"
-    );
+    ).classList.remove("hidden");
 
     document
-        .getElementById(
-            "gameScreen"
-        )
-        .classList
-        .add("hidden");
+        .getElementById("gameScreen")
+        .classList.add("hidden");
 
     document
-        .getElementById(
-            "setupScreen"
-        )
-        .classList
-        .remove("hidden");
+        .getElementById("setupScreen")
+        .classList.remove("hidden");
 }
 
 
@@ -797,8 +744,7 @@ function calculatePotLevel() {
 
     const visualMaximum =
         Math.max(
-            initial +
-                oneRound * 8,
+            initial + oneRound * 8,
             1
         );
 
@@ -856,16 +802,19 @@ function renderPot() {
     if (game.finished) {
         status =
             "🏁 GAME FINISHED";
+    }
 
-    } else if (level >= 90) {
+    else if (level >= 90) {
         status =
             "🔥 POT IS HUGE";
+    }
 
-    } else if (level >= 65) {
+    else if (level >= 65) {
         status =
             "🔥 POT GETTING BIG";
+    }
 
-    } else if (level >= 35) {
+    else if (level >= 35) {
         status =
             "POT GROWING";
     }
@@ -903,9 +852,7 @@ function playerDebtHtml(player) {
 
     player.debts.forEach(debt => {
 
-        if (
-            num(debt.amount) <= 0
-        ) {
+        if (num(debt.amount) <= 0) {
             return;
         }
 
@@ -915,8 +862,9 @@ function playerDebtHtml(player) {
         if (debt.type === "pot") {
             icon = "🪙";
             label = "Pot";
+        }
 
-        } else if (
+        else if (
             debt.type === "player"
         ) {
             icon = "👤";
@@ -930,8 +878,9 @@ function playerDebtHtml(player) {
                 creditor
                     ? creditor.name
                     : "Player";
+        }
 
-        } else if (
+        else if (
             debt.type === "legacy"
         ) {
             label =
@@ -948,9 +897,7 @@ function playerDebtHtml(player) {
                 </span>
 
                 <span class="pending-amount">
-                    ${money(
-                        debt.amount
-                    )}
+                    ${money(debt.amount)}
                 </span>
 
             </div>
@@ -988,10 +935,7 @@ function renderFinishedBanner() {
     if (!banner) return;
 
     if (!game.finished) {
-        banner.classList.add(
-            "hidden"
-        );
-
+        banner.classList.add("hidden");
         return;
     }
 
@@ -1003,9 +947,7 @@ function renderFinishedBanner() {
     document.getElementById(
         "finishedWinnerAvatar"
     ).innerHTML =
-        avatarContent(
-            winner.avatar
-        );
+        avatarContent(winner.avatar);
 
     document.getElementById(
         "finishedWinnerName"
@@ -1015,13 +957,9 @@ function renderFinishedBanner() {
     document.getElementById(
         "finishedPotAmount"
     ).textContent =
-        money(
-            game.finishedPot
-        );
+        money(game.finishedPot);
 
-    banner.classList.remove(
-        "hidden"
-    );
+    banner.classList.remove("hidden");
 }
 
 
@@ -1042,6 +980,18 @@ function renderGame() {
     renderPot();
     renderFinishedBanner();
 
+    const quickPayButton =
+        document.getElementById(
+            "quickPayButton"
+        );
+
+    if (quickPayButton) {
+        quickPayButton.classList.toggle(
+            "hidden",
+            game.finished
+        );
+    }
+
     const container =
         document.getElementById(
             "playersContainer"
@@ -1057,23 +1007,18 @@ function renderGame() {
                     "div"
                 );
 
-            card.className =
-                "player";
+            card.className = "player";
 
             card.dataset.playerCard =
                 index;
 
-            if (
-                player.streak > 0
-            ) {
+            if (player.streak > 0) {
                 card.classList.add(
                     "current-streak"
                 );
             }
 
-            if (
-                player.balance < 0
-            ) {
+            if (player.balance < 0) {
                 card.classList.add(
                     "player-negative"
                 );
@@ -1187,9 +1132,7 @@ function renderGame() {
 ========================================= */
 
 function chooseWinner(index) {
-    if (game.finished) {
-        return;
-    }
+    if (game.finished) return;
 
     selectedWinner = index;
     pendingRound = null;
@@ -1209,9 +1152,7 @@ function chooseWinner(index) {
     ).textContent =
         `${player.name} Won`;
 
-    openOverlay(
-        "winOverlay"
-    );
+    openOverlay("winOverlay");
 }
 
 
@@ -1229,6 +1170,33 @@ function showRoundConfirmation() {
         "confirmRoundTitle"
     ).textContent =
         `${winner.name} — ${pendingRound.type}`;
+
+    const quadraCheckbox =
+        document.getElementById(
+            "quadraCheckbox"
+        );
+
+    if (quadraCheckbox) {
+        quadraCheckbox.checked =
+            Boolean(
+                pendingRound.quadra
+            );
+    }
+
+    renderRoundSummary();
+
+    openOverlay(
+        "confirmRoundOverlay"
+    );
+}
+
+function renderRoundSummary() {
+    if (!pendingRound) return;
+
+    const winner =
+        game.players[
+            pendingRound.winner
+        ];
 
     let html = `
         <div class="summary-title">
@@ -1264,14 +1232,45 @@ function showRoundConfirmation() {
 
                 </div>
             `;
+
+            if (
+                pendingRound.quadra &&
+                payment.quadraAmount > 0
+            ) {
+                html += `
+                    <div class="summary-sub-row">
+                        ${money(
+                            payment.baseAmount
+                        )}
+                        base
+                        +
+                        ${money(
+                            payment.quadraAmount
+                        )}
+                        Quadra
+                    </div>
+                `;
+            }
         }
     );
+
+    if (pendingRound.quadra) {
+        html += `
+            <div class="quadra-summary">
+                🃏 QUADRA BONUS:
+                +${money(
+                    game.rules.quadraPayment
+                )}
+                from each opponent
+            </div>
+        `;
+    }
 
     html += `
         <div class="summary-row">
 
             <div class="summary-label">
-                Round Pot
+                Next Round Pot
             </div>
 
             <div class="summary-value">
@@ -1287,17 +1286,12 @@ function showRoundConfirmation() {
 
     document.getElementById(
         "roundSummary"
-    ).innerHTML =
-        html;
-
-    openOverlay(
-        "confirmRoundOverlay"
-    );
+    ).innerHTML = html;
 }
 
 
 /* =========================================
-   POT CONFIRM
+   POT CONFIRMATION
 ========================================= */
 
 function showPotConfirmation() {
@@ -1330,14 +1324,12 @@ function showPotConfirmation() {
             pendingRound.potBefore
         );
 
-    openOverlay(
-        "potWinOverlay"
-    );
+    openOverlay("potWinOverlay");
 }
 
 
 /* =========================================
-   GAME FINISHED POPUP
+   GAME FINISHED
 ========================================= */
 
 function showGameFinished(result) {
@@ -1385,8 +1377,7 @@ function buildFight() {
         (player, index) => {
 
             if (
-                index ===
-                selectedWinner
+                index === selectedWinner
             ) {
                 return;
             }
@@ -1487,8 +1478,7 @@ function buildFight() {
                         .getElementById(
                             `fightPayment${index}`
                         )
-                        .classList
-                        .toggle(
+                        .classList.toggle(
                             "hidden",
                             !this.checked
                         );
@@ -1497,8 +1487,7 @@ function buildFight() {
                         .getElementById(
                             `fightDefault${index}`
                         )
-                        .classList
-                        .toggle(
+                        .classList.toggle(
                             "hidden",
                             this.checked
                         );
@@ -1511,19 +1500,138 @@ function buildFight() {
 
 
 /* =========================================
+   QUICK PAY
+========================================= */
+
+function openQuickPay() {
+    if (
+        !game ||
+        game.finished
+    ) {
+        return;
+    }
+
+    const receiverSelect =
+        document.getElementById(
+            "quickPayReceiver"
+        );
+
+    receiverSelect.innerHTML = "";
+
+    game.players.forEach(
+        (player, index) => {
+
+            const option =
+                document.createElement(
+                    "option"
+                );
+
+            option.value = index;
+            option.textContent =
+                player.name;
+
+            receiverSelect.appendChild(
+                option
+            );
+        }
+    );
+
+    document.getElementById(
+        "quickPayAmount"
+    ).value = 1;
+
+    document.getElementById(
+        "quickPayReason"
+    ).value = "Sagasa";
+
+    renderQuickPayPayers();
+
+    openOverlay(
+        "quickPayOverlay"
+    );
+
+    activateSelectOnFocus();
+}
+
+function renderQuickPayPayers() {
+    const receiverIndex =
+        Number(
+            document.getElementById(
+                "quickPayReceiver"
+            ).value
+        );
+
+    const container =
+        document.getElementById(
+            "quickPayPayers"
+        );
+
+    container.innerHTML = "";
+
+    game.players.forEach(
+        (player, index) => {
+
+            if (index === receiverIndex) {
+                return;
+            }
+
+            const label =
+                document.createElement(
+                    "label"
+                );
+
+            label.className =
+                "quick-pay-player";
+
+            label.innerHTML = `
+                <div class="quick-pay-identity">
+
+                    <div class="quick-pay-avatar">
+                        ${avatarContent(
+                            player.avatar
+                        )}
+                    </div>
+
+                    <span>
+                        ${escapeHtml(
+                            player.name
+                        )}
+                    </span>
+
+                </div>
+
+                <input
+                    class="quick-pay-payer"
+                    type="checkbox"
+                    value="${index}"
+                    checked
+                >
+            `;
+
+            container.appendChild(
+                label
+            );
+        }
+    );
+}
+
+
+/* =========================================
    RULES
 ========================================= */
 
 function openRules() {
-    const r =
-        game.rules;
+    const r = game.rules;
 
     document.getElementById(
         "rulesList"
     ).innerHTML = `
 
         <div class="rule-card">
-            <div class="rule-title">Draw</div>
+            <div class="rule-title">
+                Draw
+            </div>
+
             <div class="rule-description">
                 Each loser pays
                 ${money(r.drawPayment)}.
@@ -1531,7 +1639,10 @@ function openRules() {
         </div>
 
         <div class="rule-card">
-            <div class="rule-title">Tongits</div>
+            <div class="rule-title">
+                Tongits
+            </div>
+
             <div class="rule-description">
                 Each loser pays
                 ${money(r.tongitsPayment)}.
@@ -1539,7 +1650,10 @@ function openRules() {
         </div>
 
         <div class="rule-card">
-            <div class="rule-title">Fight</div>
+            <div class="rule-title">
+                Fight
+            </div>
+
             <div class="rule-description">
                 Fighters pay the manually entered amount.
                 Non-fighters pay
@@ -1548,7 +1662,37 @@ function openRules() {
         </div>
 
         <div class="rule-card">
-            <div class="rule-title">Initial Pot</div>
+            <div class="rule-title">
+                Quadra
+            </div>
+
+            <div class="rule-description">
+                If the round winner has Quadra,
+                every opponent pays an additional
+                ${money(r.quadraPayment)}.
+            </div>
+        </div>
+
+        <div class="rule-card">
+            <div class="rule-title">
+                Quick Pay / Sagasa
+            </div>
+
+            <div class="rule-description">
+                Quick Pay can transfer a custom
+                amount from selected players to
+                another player without ending the
+                round or changing the streak.
+                Sagasa defaults to ${money(1)}
+                per selected player.
+            </div>
+        </div>
+
+        <div class="rule-card">
+            <div class="rule-title">
+                Initial Pot
+            </div>
+
             <div class="rule-description">
                 ${money(game.initialPot)}
                 per player.
@@ -1556,7 +1700,10 @@ function openRules() {
         </div>
 
         <div class="rule-card">
-            <div class="rule-title">Round Pot</div>
+            <div class="rule-title">
+                Round Pot
+            </div>
+
             <div class="rule-description">
                 ${money(r.roundPot)}
                 per player after every completed
@@ -1565,17 +1712,23 @@ function openRules() {
         </div>
 
         <div class="rule-card">
-            <div class="rule-title">Pending Payments</div>
+            <div class="rule-title">
+                Pending Payments
+            </div>
+
             <div class="rule-description">
                 If a player cannot fully pay,
                 the unpaid amount remains pending.
-                Future winnings automatically
-                settle pending amounts first.
+                Future money received automatically
+                settles pending amounts first.
             </div>
         </div>
 
         <div class="rule-card">
-            <div class="rule-title">Pot Streak</div>
+            <div class="rule-title">
+                Pot Streak
+            </div>
+
             <div class="rule-description">
                 At ${r.potWinStreak}
                 consecutive wins, the app asks
@@ -1584,19 +1737,18 @@ function openRules() {
         </div>
 
         <div class="rule-card">
-            <div class="rule-title">Winning the Pot</div>
+            <div class="rule-title">
+                Winning the Pot
+            </div>
+
             <div class="rule-description">
-                Taking the pot ends the current game.
+                Taking the pot ends the game.
                 No new round contribution is collected.
-                You can review the final results before
-                starting another game.
             </div>
         </div>
     `;
 
-    openOverlay(
-        "rulesOverlay"
-    );
+    openOverlay("rulesOverlay");
 }
 
 
@@ -1616,6 +1768,11 @@ function openSettings() {
         game.rules.tongitsPayment;
 
     document.getElementById(
+        "settingQuadraPayment"
+    ).value =
+        game.rules.quadraPayment;
+
+    document.getElementById(
         "settingInitialPot"
     ).value =
         game.initialPot;
@@ -1632,9 +1789,7 @@ function openSettings() {
 
     updateThemeButtons();
 
-    openOverlay(
-        "settingsOverlay"
-    );
+    openOverlay("settingsOverlay");
 
     activateSelectOnFocus();
 }
@@ -1658,7 +1813,7 @@ function openHistory() {
     ) {
         container.innerHTML = `
             <div class="history-empty">
-                No completed rounds yet.
+                No activity yet.
             </div>
         `;
 
@@ -1681,6 +1836,96 @@ function openHistory() {
             item.className =
                 "history-item";
 
+
+            /* QUICK PAY */
+
+            if (
+                entry.eventType ===
+                "quickPay"
+            ) {
+                const payments =
+                    (entry.payments || [])
+                        .map(payment => {
+
+                            let text = `
+                                ${escapeHtml(
+                                    payment.from
+                                )}
+                                → ${money(
+                                    payment.amount
+                                )}
+                            `;
+
+                            if (
+                                payment.pending > 0
+                            ) {
+                                text += `
+                                    (${money(
+                                        payment.paid
+                                    )} paid,
+                                    ${money(
+                                        payment.pending
+                                    )} pending)
+                                `;
+                            }
+
+                            return `
+                                <div>
+                                    ${text}
+                                </div>
+                            `;
+                        })
+                        .join("");
+
+                item.innerHTML = `
+                    <div class="history-header">
+
+                        <div class="history-round">
+                            Round ${entry.round}
+                        </div>
+
+                        <div class="history-type">
+                            💸 QUICK PAY
+                        </div>
+
+                    </div>
+
+                    <div class="history-winner">
+
+                        <span class="history-avatar">
+                            ${avatarContent(
+                                entry.winnerAvatar
+                            )}
+                        </span>
+
+                        ${escapeHtml(
+                            entry.winner
+                        )}
+
+                    </div>
+
+                    <div class="quick-pay-history-reason">
+                        ${escapeHtml(
+                            entry.reason ||
+                            "Quick Pay"
+                        )}
+                    </div>
+
+                    <div class="history-details">
+                        ${payments}
+                    </div>
+                `;
+
+                container.appendChild(
+                    item
+                );
+
+                return;
+            }
+
+
+            /* NORMAL ROUND */
+
             const payments =
                 (entry.payments || [])
                     .map(payment => {
@@ -1694,6 +1939,21 @@ function openHistory() {
                                 payment.amount
                             )}
                         `;
+
+                        if (
+                            payment.quadraAmount > 0
+                        ) {
+                            detail += `
+                                (${money(
+                                    payment.baseAmount
+                                )}
+                                +
+                                ${money(
+                                    payment.quadraAmount
+                                )}
+                                Quadra)
+                            `;
+                        }
 
                         if (
                             payment.pending > 0
@@ -1710,8 +1970,7 @@ function openHistory() {
                                 pending
                             `;
                         } else {
-                            detail +=
-                                ` — paid`;
+                            detail += ` — paid`;
                         }
 
                         return `
@@ -1721,11 +1980,23 @@ function openHistory() {
                     })
                     .join("");
 
+            let quadraText = "";
+
+            if (entry.quadra) {
+                quadraText = `
+                    <div class="history-quadra">
+                        🃏 Quadra +
+                        ${money(
+                            entry.quadraPayment
+                        )}
+                        per opponent
+                    </div>
+                `;
+            }
+
             let potText = "";
 
-            if (
-                entry.potWon > 0
-            ) {
+            if (entry.potWon > 0) {
                 potText = `
                     <div class="history-pot-won">
                         🔥 Took funded pot:
@@ -1755,8 +2026,9 @@ function openHistory() {
                         🏁 Game finished
                     </div>
                 `;
+            }
 
-            } else if (
+            else if (
                 entry.potDecisionRequired
             ) {
                 potText = `
@@ -1825,6 +2097,8 @@ function openHistory() {
 
                 </div>
 
+                ${quadraText}
+
                 <div class="history-details">
 
                     ${payments}
@@ -1850,7 +2124,5 @@ function openHistory() {
             );
         });
 
-    openOverlay(
-        "historyOverlay"
-    );
+    openOverlay("historyOverlay");
 }

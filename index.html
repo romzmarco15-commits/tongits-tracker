@@ -26,351 +26,360 @@
 
 <div class="app">
 
-    <!-- =========================
-         SETUP
-    ========================== -->
 
-    <section id="setupScreen">
+<!-- =====================================
+     SETUP
+====================================== -->
 
-        <header class="header">
+<section id="setupScreen">
 
-            <h1>Tongits</h1>
+    <header class="header">
 
-            <button
-                id="backToGameButton"
-                class="back-button hidden"
-                type="button"
-            >
-                ← Back to Game
-            </button>
+        <h1>Tongits</h1>
 
-        </header>
+        <button
+            id="backToGameButton"
+            class="back-button hidden"
+            type="button"
+        >
+            ← Back to Game
+        </button>
 
-
-        <main class="setup">
-
-            <h2 id="setupTitle">
-                New Game
-            </h2>
-
-            <p
-                id="setupSubtitle"
-                class="subtitle"
-            >
-                Set your players and starting money.
-            </p>
+    </header>
 
 
-            <div class="setup-card">
+    <main class="setup">
 
-                <h3>
-                    Number of Players
-                </h3>
+        <h2 id="setupTitle">
+            New Game
+        </h2>
 
-                <div class="player-count-control">
+        <p
+            id="setupSubtitle"
+            class="subtitle"
+        >
+            Set your players and starting money.
+        </p>
 
-                    <button
-                        id="decreasePlayersButton"
-                        class="count-button"
-                        type="button"
-                    >
-                        −
-                    </button>
 
-                    <div
-                        id="playerCountDisplay"
-                        class="player-count"
-                    >
-                        3
-                    </div>
+        <div class="setup-card">
 
-                    <button
-                        id="increasePlayersButton"
-                        class="count-button"
-                        type="button"
-                    >
-                        +
-                    </button>
+            <h3>
+                Number of Players
+            </h3>
 
+            <div class="player-count-control">
+
+                <button
+                    id="decreasePlayersButton"
+                    class="count-button"
+                    type="button"
+                >
+                    −
+                </button>
+
+                <div
+                    id="playerCountDisplay"
+                    class="player-count"
+                >
+                    3
                 </div>
 
-                <div class="player-count-note">
-                    2–6 players
-                </div>
+                <button
+                    id="increasePlayersButton"
+                    class="count-button"
+                    type="button"
+                >
+                    +
+                </button>
+
+            </div>
+
+            <div class="player-count-note">
+                2–6 players
+            </div>
+
+        </div>
+
+
+        <div id="setupPlayers"></div>
+
+
+        <div class="setup-card">
+
+            <h3>Game</h3>
+
+            <div class="field">
+
+                <label for="initialPot">
+                    Initial Pot / Player
+                </label>
+
+                <input
+                    id="initialPot"
+                    class="select-on-focus"
+                    type="number"
+                    inputmode="decimal"
+                    min="0"
+                    step="0.01"
+                    value="4"
+                >
 
             </div>
 
 
-            <div id="setupPlayers"></div>
+            <div class="field">
 
+                <label for="roundPot">
+                    Round Pot / Player
+                </label>
 
-            <div class="setup-card">
-
-                <h3>Game</h3>
-
-                <div class="field">
-
-                    <label for="initialPot">
-                        Initial Pot / Player
-                    </label>
-
-                    <input
-                        id="initialPot"
-                        class="select-on-focus"
-                        type="number"
-                        inputmode="decimal"
-                        min="0"
-                        step="0.01"
-                        value="4"
-                    >
-
-                </div>
-
-
-                <div class="field">
-
-                    <label for="roundPot">
-                        Round Pot / Player
-                    </label>
-
-                    <input
-                        id="roundPot"
-                        class="select-on-focus"
-                        type="number"
-                        inputmode="decimal"
-                        min="0"
-                        step="0.01"
-                        value="2"
-                    >
-
-                </div>
-
-
-                <div class="field">
-
-                    <label for="currency">
-                        Currency
-                    </label>
-
-                    <select id="currency">
-
-                        <option
-                            value="S$"
-                            selected
-                        >
-                            S$ Singapore Dollar
-                        </option>
-
-                        <option value="$">
-                            $ Dollar
-                        </option>
-
-                        <option value="₱">
-                            ₱ Philippine Peso
-                        </option>
-
-                        <option value="RM">
-                            RM Malaysian Ringgit
-                        </option>
-
-                    </select>
-
-                </div>
+                <input
+                    id="roundPot"
+                    class="select-on-focus"
+                    type="number"
+                    inputmode="decimal"
+                    min="0"
+                    step="0.01"
+                    value="2"
+                >
 
             </div>
 
 
+            <div class="field">
+
+                <label for="currency">
+                    Currency
+                </label>
+
+                <select id="currency">
+
+                    <option value="S$" selected>
+                        S$ Singapore Dollar
+                    </option>
+
+                    <option value="$">
+                        $ Dollar
+                    </option>
+
+                    <option value="₱">
+                        ₱ Philippine Peso
+                    </option>
+
+                    <option value="RM">
+                        RM Malaysian Ringgit
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+
+        <button
+            id="startGameButton"
+            class="primary-button"
+            type="button"
+        >
+            START GAME
+        </button>
+
+    </main>
+
+</section>
+
+
+
+<!-- =====================================
+     GAME
+====================================== -->
+
+<section
+    id="gameScreen"
+    class="hidden"
+>
+
+    <header class="header game-header">
+
+        <h1>Tongits</h1>
+
+        <div class="header-actions">
+
             <button
-                id="startGameButton"
-                class="primary-button"
+                id="rulesButton"
+                class="icon-button"
                 type="button"
             >
-                START GAME
+                ?
             </button>
 
-        </main>
+            <button
+                id="settingsButton"
+                class="icon-button"
+                type="button"
+            >
+                ⚙️
+            </button>
 
-    </section>
+        </div>
+
+    </header>
 
 
+    <div class="round-header">
+        ROUND
+        <span id="roundDisplay">
+            1
+        </span>
+    </div>
 
-    <!-- =========================
-         GAME
-    ========================== -->
 
-    <section
-        id="gameScreen"
-        class="hidden"
+    <!-- GAME FINISHED BANNER -->
+
+    <div
+        id="gameFinishedBanner"
+        class="game-finished-banner hidden"
     >
 
-        <header class="header game-header">
-
-            <h1>Tongits</h1>
-
-            <div class="header-actions">
-
-                <button
-                    id="rulesButton"
-                    class="icon-button"
-                    type="button"
-                >
-                    ?
-                </button>
-
-                <button
-                    id="settingsButton"
-                    class="icon-button"
-                    type="button"
-                >
-                    ⚙️
-                </button>
-
-            </div>
-
-        </header>
-
-
-        <div class="round-header">
-            ROUND
-            <span id="roundDisplay">
-                1
-            </span>
-        </div>
-
-
-        <!-- FINISHED BANNER -->
-
         <div
-            id="gameFinishedBanner"
-            class="game-finished-banner hidden"
+            id="finishedWinnerAvatar"
+            class="finished-banner-avatar"
         >
-
-            <div
-                id="finishedWinnerAvatar"
-                class="finished-banner-avatar"
-            >
-                😎
-            </div>
-
-            <div class="finished-banner-info">
-
-                <div class="finished-label">
-                    🏁 GAME FINISHED
-                </div>
-
-                <div
-                    id="finishedWinnerName"
-                    class="finished-winner-name"
-                >
-                    Player won the pot
-                </div>
-
-                <div
-                    id="finishedPotAmount"
-                    class="finished-pot-amount"
-                >
-                    S$0
-                </div>
-
-            </div>
-
-            <button
-                id="finalScreenNewGameButton"
-                class="primary-button"
-                type="button"
-            >
-                START NEW GAME
-            </button>
-
+            😎
         </div>
 
+        <div class="finished-banner-info">
 
-        <!-- POT -->
-
-        <section
-            id="potArea"
-            class="pot-area"
-        >
-
-            <div class="pot-heading">
-                🪙 CURRENT POT
+            <div class="finished-label">
+                🏁 GAME FINISHED
             </div>
 
             <div
-                id="potDisplay"
-                class="pot-amount"
+                id="finishedWinnerName"
+                class="finished-winner-name"
+            >
+                Player won the pot
+            </div>
+
+            <div
+                id="finishedPotAmount"
+                class="finished-pot-amount"
             >
                 S$0
             </div>
 
-            <div class="pot-visual">
+        </div>
 
-                <div class="pot-rim"></div>
+        <button
+            id="finalScreenNewGameButton"
+            class="primary-button"
+            type="button"
+        >
+            START NEW GAME
+        </button>
 
-                <div class="pot-container">
+    </div>
 
-                    <div
-                        id="potFill"
-                        class="pot-fill"
-                    ></div>
 
-                    <div
-                        id="potCoins"
-                        class="pot-coins"
-                    >
-                        🪙
-                    </div>
+    <!-- POT -->
 
+    <section
+        id="potArea"
+        class="pot-area"
+    >
+
+        <div class="pot-heading">
+            🪙 CURRENT POT
+        </div>
+
+        <div
+            id="potDisplay"
+            class="pot-amount"
+        >
+            S$0
+        </div>
+
+        <div class="pot-visual">
+
+            <div class="pot-rim"></div>
+
+            <div class="pot-container">
+
+                <div
+                    id="potFill"
+                    class="pot-fill"
+                ></div>
+
+                <div
+                    id="potCoins"
+                    class="pot-coins"
+                >
+                    🪙
                 </div>
 
             </div>
 
-            <div class="pot-meter">
+        </div>
 
-                <div
-                    id="potMeterFill"
-                    class="pot-meter-fill"
-                ></div>
-
-            </div>
+        <div class="pot-meter">
 
             <div
-                id="potStatus"
-                class="pot-status"
-            >
-                POT STARTED
-            </div>
-
-        </section>
-
-
-        <div
-            id="playersContainer"
-            class="players"
-        ></div>
-
-
-        <div class="bottom-buttons">
-
-            <button
-                id="undoButton"
-                class="secondary-button"
-                type="button"
-            >
-                ↶ Undo
-            </button>
-
-            <button
-                id="historyButton"
-                class="secondary-button"
-                type="button"
-            >
-                History
-            </button>
+                id="potMeterFill"
+                class="pot-meter-fill"
+            ></div>
 
         </div>
 
+        <div
+            id="potStatus"
+            class="pot-status"
+        >
+            POT STARTED
+        </div>
+
     </section>
+
+
+    <div
+        id="playersContainer"
+        class="players"
+    ></div>
+
+
+    <!-- QUICK PAY -->
+
+    <button
+        id="quickPayButton"
+        class="quick-pay-main-button"
+        type="button"
+    >
+        💸 QUICK PAY
+    </button>
+
+
+    <div class="bottom-buttons">
+
+        <button
+            id="undoButton"
+            class="secondary-button"
+            type="button"
+        >
+            ↶ Undo
+        </button>
+
+        <button
+            id="historyButton"
+            class="secondary-button"
+            type="button"
+        >
+            History
+        </button>
+
+    </div>
+
+</section>
 
 </div>
 
@@ -383,7 +392,9 @@
 
 
 
-<!-- AVATAR -->
+<!-- =====================================
+     AVATAR
+====================================== -->
 
 <div
     id="avatarOverlay"
@@ -434,7 +445,9 @@
 
 
 
-<!-- WIN -->
+<!-- =====================================
+     WIN
+====================================== -->
 
 <div
     id="winOverlay"
@@ -496,7 +509,9 @@
 
 
 
-<!-- CONFIRM ROUND -->
+<!-- =====================================
+     CONFIRM ROUND + QUADRA
+====================================== -->
 
 <div
     id="confirmRoundOverlay"
@@ -509,10 +524,35 @@
             Confirm Round
         </h2>
 
+
+        <label class="quadra-toggle">
+
+            <div class="quadra-toggle-info">
+
+                <div class="quadra-toggle-title">
+                    🃏 QUADRA
+                </div>
+
+                <div class="quadra-toggle-description">
+                    Winner gets an additional
+                    bonus from every opponent.
+                </div>
+
+            </div>
+
+            <input
+                id="quadraCheckbox"
+                type="checkbox"
+            >
+
+        </label>
+
+
         <div
             id="roundSummary"
             class="round-summary"
         ></div>
+
 
         <button
             id="confirmRoundButton"
@@ -536,7 +576,9 @@
 
 
 
-<!-- POT DECISION -->
+<!-- =====================================
+     POT DECISION
+====================================== -->
 
 <div
     id="potWinOverlay"
@@ -608,9 +650,112 @@
 
 
 
-<!-- =========================
+<!-- =====================================
+     QUICK PAY
+====================================== -->
+
+<div
+    id="quickPayOverlay"
+    class="overlay hidden"
+>
+
+    <div class="modal">
+
+        <h2>
+            💸 Quick Pay
+        </h2>
+
+        <p class="modal-subtitle">
+            Record an extra payment without
+            ending the current round.
+        </p>
+
+
+        <div class="field">
+
+            <label>
+                Who receives the payment?
+            </label>
+
+            <select id="quickPayReceiver"></select>
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                Amount per selected player
+            </label>
+
+            <input
+                id="quickPayAmount"
+                class="select-on-focus"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                step="0.01"
+                value="1"
+            >
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                Reason
+            </label>
+
+            <input
+                id="quickPayReason"
+                type="text"
+                value="Sagasa"
+                autocomplete="off"
+            >
+
+        </div>
+
+
+        <div class="quick-pay-section-title">
+            WHO PAYS?
+        </div>
+
+        <p class="quick-pay-note">
+            All other players are selected by default.
+        </p>
+
+        <div
+            id="quickPayPayers"
+            class="quick-pay-payers"
+        ></div>
+
+
+        <button
+            id="confirmQuickPayButton"
+            class="primary-button"
+            type="button"
+        >
+            CONFIRM PAYMENT
+        </button>
+
+        <button
+            id="cancelQuickPayButton"
+            class="cancel-button"
+            type="button"
+        >
+            Cancel
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================
      GAME FINISHED
-========================== -->
+====================================== -->
 
 <div
     id="gameFinishedOverlay"
@@ -650,8 +795,8 @@
         </div>
 
         <p class="modal-subtitle">
-            The game is finished. Final balances
-            and history have been saved.
+            The game is finished.
+            Final balances and history have been saved.
         </p>
 
         <button
@@ -676,9 +821,9 @@
 
 
 
-<!-- =========================
-     START NEXT GAME
-========================== -->
+<!-- =====================================
+     NEXT GAME
+====================================== -->
 
 <div
     id="finishedNewGameOverlay"
@@ -695,7 +840,6 @@
             How would you like to start?
         </p>
 
-
         <button
             id="finishedKeepMoneyButton"
             class="result-button"
@@ -706,9 +850,8 @@
 
         <p class="button-description">
             Use everyone's final net balance
-            as the starting money for the new game.
+            as the new starting money.
         </p>
-
 
         <button
             id="finishedResetMoneyButton"
@@ -723,7 +866,6 @@
             starting money.
         </p>
 
-
         <button
             id="finishedEditPlayersButton"
             class="result-button"
@@ -736,7 +878,6 @@
             Change players, photos, starting
             money or game setup.
         </p>
-
 
         <button
             id="cancelFinishedNewGameButton"
@@ -752,7 +893,9 @@
 
 
 
-<!-- FIGHT -->
+<!-- =====================================
+     FIGHT
+====================================== -->
 
 <div
     id="fightOverlay"
@@ -796,7 +939,9 @@
 
 
 
-<!-- RULES -->
+<!-- =====================================
+     RULES
+====================================== -->
 
 <div
     id="rulesOverlay"
@@ -840,7 +985,9 @@
 
 
 
-<!-- SETTINGS -->
+<!-- =====================================
+     SETTINGS
+====================================== -->
 
 <div
     id="settingsOverlay"
@@ -851,7 +998,9 @@
 
         <div class="modal-top-bar">
 
-            <h2>Settings</h2>
+            <h2>
+                Settings
+            </h2>
 
             <button
                 id="topCloseSettingsButton"
@@ -927,6 +1076,24 @@
 
             <input
                 id="settingTongitsPayment"
+                class="select-on-focus"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                step="0.01"
+            >
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                Quadra Bonus / Opponent
+            </label>
+
+            <input
+                id="settingQuadraPayment"
                 class="select-on-focus"
                 type="number"
                 inputmode="decimal"
@@ -1033,7 +1200,9 @@
 
 
 
-<!-- RESTART -->
+<!-- =====================================
+     RESTART
+====================================== -->
 
 <div
     id="restartOverlay"
@@ -1093,7 +1262,9 @@
 
 
 
-<!-- NEW GAME CONFIRM -->
+<!-- =====================================
+     NEW GAME CONFIRM
+====================================== -->
 
 <div
     id="newGameConfirmOverlay"
@@ -1133,7 +1304,9 @@
 
 
 
-<!-- HISTORY -->
+<!-- =====================================
+     HISTORY
+====================================== -->
 
 <div
     id="historyOverlay"
@@ -1144,7 +1317,9 @@
 
         <div class="modal-top-bar">
 
-            <h2>History</h2>
+            <h2>
+                History
+            </h2>
 
             <button
                 id="topCloseHistoryButton"
@@ -1175,7 +1350,9 @@
 
 
 
-<!-- MESSAGE -->
+<!-- =====================================
+     MESSAGE
+====================================== -->
 
 <div
     id="messageOverlay"

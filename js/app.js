@@ -264,9 +264,7 @@ document
                     "winOverlay"
                 );
 
-                if (
-                    type === "Fight"
-                ) {
+                if (type === "Fight") {
                     buildFight();
 
                     openOverlay(
@@ -343,21 +341,33 @@ document.getElementById(
                         return;
                     }
 
+                    const base =
+                        num(input.value);
+
                     payments.push({
                         from: index,
                         to: selectedWinner,
-                        amount:
-                            num(input.value),
+
+                        amount: base,
+                        baseAmount: base,
+                        quadraAmount: 0,
+
                         reason: "Fight"
                     });
 
                 } else {
+                    const base =
+                        game.rules
+                            .drawPayment;
+
                     payments.push({
                         from: index,
                         to: selectedWinner,
-                        amount:
-                            game.rules
-                                .drawPayment,
+
+                        amount: base,
+                        baseAmount: base,
+                        quadraAmount: 0,
+
                         reason:
                             "Did not fight"
                     });
@@ -377,6 +387,7 @@ document.getElementById(
         pendingRound = {
             type: "Fight",
             winner: selectedWinner,
+            quadra: false,
             payments
         };
 
@@ -404,6 +415,25 @@ document.getElementById(
 
 
 /* =========================================
+   QUADRA
+========================================= */
+
+document.getElementById(
+    "quadraCheckbox"
+).addEventListener(
+    "change",
+    function () {
+
+        setPendingRoundQuadra(
+            this.checked
+        );
+
+        renderRoundSummary();
+    }
+);
+
+
+/* =========================================
    CONFIRM ROUND
 ========================================= */
 
@@ -412,6 +442,8 @@ document.getElementById(
 ).addEventListener(
     "click",
     async function () {
+
+        if (!pendingRound) return;
 
         const winnerIndex =
             pendingRound.winner;
@@ -438,12 +470,6 @@ document.getElementById(
             return;
         }
 
-        /*
-            Normal round:
-            collect next round contribution
-            and continue.
-        */
-
         finishRound(false);
 
         await animateRoundPotContribution();
@@ -451,11 +477,6 @@ document.getElementById(
         renderGame();
     }
 );
-
-
-/* =========================================
-   CANCEL ROUND
-========================================= */
 
 document.getElementById(
     "cancelRoundButton"
@@ -474,7 +495,7 @@ document.getElementById(
 
 
 /* =========================================
-   YES — TAKE POT
+   TAKE POT
 ========================================= */
 
 document.getElementById(
@@ -493,22 +514,10 @@ document.getElementById(
             "potWinOverlay"
         );
 
-        /*
-            Show old pot travelling to winner.
-        */
-
         await animatePotToWinner(
             winnerIndex,
             potAmount
         );
-
-        /*
-            IMPORTANT:
-            finishRound(true) now ENDS GAME.
-
-            It does NOT collect another
-            round-pot contribution.
-        */
 
         const result =
             finishRound(true);
@@ -521,7 +530,7 @@ document.getElementById(
 
 
 /* =========================================
-   NO — KEEP POT
+   KEEP POT
 ========================================= */
 
 document.getElementById(
@@ -534,19 +543,131 @@ document.getElementById(
             "potWinOverlay"
         );
 
-        /*
-            NO means game continues.
-
-            New round contribution is
-            collected normally.
-        */
-
         finishRound(false);
 
         await animateRoundPotContribution();
 
         renderGame();
     }
+);
+
+
+/* =========================================
+   QUICK PAY
+========================================= */
+
+document.getElementById(
+    "quickPayButton"
+).addEventListener(
+    "click",
+    openQuickPay
+);
+
+document.getElementById(
+    "quickPayReceiver"
+).addEventListener(
+    "change",
+    renderQuickPayPayers
+);
+
+document.getElementById(
+    "confirmQuickPayButton"
+).addEventListener(
+    "click",
+    function () {
+
+        const receiverIndex =
+            Number(
+                document.getElementById(
+                    "quickPayReceiver"
+                ).value
+            );
+
+        const amount =
+            num(
+                document.getElementById(
+                    "quickPayAmount"
+                ).value
+            );
+
+        const reason =
+            document.getElementById(
+                "quickPayReason"
+            ).value.trim() ||
+            "Quick Pay";
+
+        const payerIndexes =
+            Array.from(
+                document.querySelectorAll(
+                    ".quick-pay-payer:checked"
+                )
+            ).map(
+                checkbox =>
+                    Number(
+                        checkbox.value
+                    )
+            );
+
+        if (amount <= 0) {
+            showMessage(
+                "Invalid Amount",
+                "Enter an amount greater than zero."
+            );
+
+            return;
+        }
+
+        if (
+            payerIndexes.length === 0
+        ) {
+            showMessage(
+                "No Payers Selected",
+                "Select at least one player who will pay."
+            );
+
+            return;
+        }
+
+        const result =
+            processQuickPay(
+                receiverIndex,
+                payerIndexes,
+                amount,
+                reason
+            );
+
+        if (!result) {
+            showMessage(
+                "Quick Pay",
+                "The payment could not be recorded."
+            );
+
+            return;
+        }
+
+        closeOverlay(
+            "quickPayOverlay"
+        );
+
+        renderGame();
+
+        showMessage(
+            "Payment Recorded",
+            `${result.receiverName} received ${money(
+                result.amountPerPlayer
+            )} from each selected player for ${result.reason}.`
+        );
+    }
+);
+
+document.getElementById(
+    "cancelQuickPayButton"
+).addEventListener(
+    "click",
+    () =>
+        closeOverlay(
+            "quickPayOverlay"
+        )
 );
 
 
@@ -584,11 +705,6 @@ document.getElementById(
     }
 );
 
-
-/* =========================================
-   FINISHED -> SAME PLAYERS KEEP MONEY
-========================================= */
-
 document.getElementById(
     "finishedKeepMoneyButton"
 ).addEventListener(
@@ -612,11 +728,6 @@ document.getElementById(
     }
 );
 
-
-/* =========================================
-   FINISHED -> SAME PLAYERS RESET MONEY
-========================================= */
-
 document.getElementById(
     "finishedResetMoneyButton"
 ).addEventListener(
@@ -639,11 +750,6 @@ document.getElementById(
         );
     }
 );
-
-
-/* =========================================
-   FINISHED -> EDIT PLAYERS
-========================================= */
 
 document.getElementById(
     "finishedEditPlayersButton"
@@ -669,11 +775,6 @@ document.getElementById(
         )
 );
 
-
-/* =========================================
-   FINAL SCREEN START NEW GAME BUTTON
-========================================= */
-
 document.getElementById(
     "finalScreenNewGameButton"
 ).addEventListener(
@@ -697,12 +798,10 @@ document.getElementById(
     "click",
     function () {
 
-        if (
-            !undoLastRound()
-        ) {
+        if (!undoLastRound()) {
             showMessage(
                 "Nothing to Undo",
-                "There are no completed rounds to undo."
+                "There is nothing to undo."
             );
 
             return;
@@ -711,8 +810,8 @@ document.getElementById(
         renderGame();
 
         showMessage(
-            "Round Undone",
-            `Restored to Round ${game.round}.`
+            "Undone",
+            "The last transaction was reversed."
         );
     }
 );
@@ -822,16 +921,14 @@ document.getElementById(
     "darkThemeButton"
 ).addEventListener(
     "click",
-    () =>
-        applyTheme("dark")
+    () => applyTheme("dark")
 );
 
 document.getElementById(
     "lightThemeButton"
 ).addEventListener(
     "click",
-    () =>
-        applyTheme("light")
+    () => applyTheme("light")
 );
 
 
@@ -854,6 +951,11 @@ document.getElementById(
             tongitsPayment:
                 document.getElementById(
                     "settingTongitsPayment"
+                ).value,
+
+            quadraPayment:
+                document.getElementById(
+                    "settingQuadraPayment"
                 ).value,
 
             initialPot:
@@ -998,7 +1100,7 @@ document.getElementById(
 
 
 /* =========================================
-   GLOBAL OUTSIDE CLICK
+   OUTSIDE CLICK
 ========================================= */
 
 document
@@ -1015,23 +1117,12 @@ document
                     return;
                 }
 
-                /*
-                    Pot decision requires
-                    explicit YES or NO.
-                */
-
                 if (
                     this.id ===
                     "potWinOverlay"
                 ) {
                     return;
                 }
-
-                /*
-                    Game Finished popup:
-                    force View Results or
-                    Start New Game.
-                */
 
                 if (
                     this.id ===
@@ -1078,7 +1169,7 @@ document
 
 
 /* =========================================
-   LOAD SAVED GAME
+   LOAD
 ========================================= */
 
 if (loadGame()) {

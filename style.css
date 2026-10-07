@@ -1806,3 +1806,211 @@ body[data-theme="light"]
         width: 100%;
     }
 }
+
+/* =========================================
+   QUICK PAY
+========================================= */
+
+.quick-pay-main-button {
+    display: block;
+
+    width: min(420px, calc(100% - 32px));
+
+    margin: 8px auto 18px;
+    padding: 14px 18px;
+
+    border: 1px solid var(--border);
+    border-radius: 14px;
+
+    background: var(--surface-2);
+    color: var(--text);
+
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: 0.7px;
+
+    cursor: pointer;
+}
+
+.quick-pay-main-button:active {
+    transform: scale(0.98);
+}
+
+.quick-pay-section-title {
+    margin-top: 20px;
+    margin-bottom: 4px;
+
+    color: var(--text-muted);
+
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 1.2px;
+}
+
+.quick-pay-note {
+    margin-top: 0;
+    margin-bottom: 10px;
+
+    color: var(--text-muted);
+
+    font-size: 12px;
+}
+
+.quick-pay-payers {
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+
+    margin-bottom: 20px;
+}
+
+.quick-pay-player {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    padding: 11px 12px;
+
+    border: 1px solid var(--border);
+    border-radius: 12px;
+
+    background: var(--surface-3);
+
+    cursor: pointer;
+}
+
+.quick-pay-identity {
+    display: flex;
+    align-items: center;
+
+    min-width: 0;
+
+    gap: 10px;
+
+    font-weight: 800;
+}
+
+.quick-pay-avatar {
+    width: 36px;
+    height: 36px;
+
+    flex: 0 0 36px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+
+    border-radius: 50%;
+
+    font-size: 23px;
+}
+
+.quick-pay-avatar img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: cover;
+}
+
+.quick-pay-player input {
+    width: 22px;
+    height: 22px;
+
+    flex: 0 0 22px;
+}
+
+.quick-pay-history-reason {
+    margin: 8px 0;
+
+    font-weight: 900;
+}
+
+
+/* =========================================
+   QUADRA
+========================================= */
+
+.quadra-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 14px;
+
+    margin: 15px 0;
+    padding: 14px;
+
+    border: 1px solid var(--border);
+    border-radius: 14px;
+
+    background: var(--surface-3);
+
+    cursor: pointer;
+}
+
+.quadra-toggle-info {
+    min-width: 0;
+}
+
+.quadra-toggle-title {
+    font-size: 14px;
+    font-weight: 900;
+}
+
+.quadra-toggle-description {
+    margin-top: 3px;
+
+    color: var(--text-muted);
+
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.quadra-toggle input {
+    width: 24px;
+    height: 24px;
+
+    flex: 0 0 24px;
+}
+
+.quadra-summary {
+    margin: 10px 0;
+    padding: 10px 12px;
+
+    border: 1px solid var(--border);
+    border-radius: 10px;
+
+    background: var(--surface-3);
+
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.summary-sub-row {
+    margin-top: -5px;
+    margin-bottom: 8px;
+
+    color: var(--text-muted);
+
+    text-align: right;
+
+    font-size: 10px;
+}
+
+.history-quadra {
+    margin: 8px 0;
+    padding: 8px 10px;
+
+    border: 1px solid var(--border);
+    border-radius: 9px;
+
+    background: var(--surface-3);
+
+    font-size: 12px;
+    font-weight: 900;
+}
