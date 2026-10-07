@@ -1369,6 +1369,28 @@ function showGameFinished(result) {
     ).textContent =
         money(result.potWon);
 
+    const settlementBox = document.getElementById("gameFinishedSettlement");
+    if (settlementBox) {
+        const details = Array.isArray(result.settlementDetails)
+            ? result.settlementDetails
+            : [];
+
+        if (details.length) {
+            settlementBox.innerHTML = `
+                <div class="settlement-title">SETTLEMENT DETAILS</div>
+                ${details.map(item => `
+                    <div class="settlement-row ${escapeAttribute(item.type || "")}">
+                        ${escapeHtml(item.text)}
+                    </div>
+                `).join("")}
+            `;
+            settlementBox.classList.remove("hidden");
+        } else {
+            settlementBox.innerHTML = "";
+            settlementBox.classList.add("hidden");
+        }
+    }
+
     openOverlay(
         "gameFinishedOverlay"
     );
@@ -1378,8 +1400,10 @@ function showGameFinished(result) {
         setTimeout(() => {
             if (predicted === result.winnerIndex) {
                 if (typeof eggToast === "function") eggToast("🔮 THE PROPHECY WAS FULFILLED!", 3500);
+                if (typeof playSoundEffect === "function") playSoundEffect("potwin");
             } else {
                 if (typeof eggToast === "function") eggToast("🔮 The prophecy was wrong. We never speak of this again.", 3800);
+                if (typeof playSoundEffect === "function") playSoundEffect("magic");
             }
         }, 450);
     }
@@ -1682,6 +1706,7 @@ function openSettings() {
         game.rules.potWinStreak;
 
     updateThemeButtons();
+    if (typeof updateSoundSettingButtons === "function") updateSoundSettingButtons();
 
     openOverlay("settingsOverlay");
 

@@ -186,17 +186,42 @@ function addDebt(debtorIndex, debt) {
         player.debts = [];
     }
 
-    const amount = roundMoney(debt.amount);
+    let amount = roundMoney(debt.amount);
 
     if (amount <= 0) return;
 
     let existing = null;
 
     if (debt.type === "player") {
+        const creditorIndex = debt.playerIndex;
+        const creditor = game.players[creditorIndex];
+
+        // Net opposite player-to-player debts immediately.
+        if (creditor && Array.isArray(creditor.debts)) {
+            const reverseDebt = creditor.debts.find(
+                item =>
+                    item.type === "player" &&
+                    item.playerIndex === debtorIndex
+            );
+
+            if (reverseDebt) {
+                const offset = roundMoney(Math.min(amount, reverseDebt.amount));
+                amount = roundMoney(amount - offset);
+                reverseDebt.amount = roundMoney(reverseDebt.amount - offset);
+                cleanupDebts(creditor);
+                refreshPlayerBalance(creditor);
+
+                if (amount <= 0) {
+                    refreshPlayerBalance(player);
+                    return;
+                }
+            }
+        }
+
         existing = player.debts.find(
             item =>
                 item.type === "player" &&
-                item.playerIndex === debt.playerIndex
+                item.playerIndex === creditorIndex
         );
     }
 
@@ -859,6 +884,53 @@ function processQuickPay(
    PENDING POT -> WINNER
 ========================================= */
 
+function captureSettlementState() {
+    return game.players.map((player, index) => ({
+        index,
+        name: player.name,
+        cash: roundMoney(player.cash),
+        balance: roundMoney(player.balance),
+        debts: clone(player.debts || [])
+    }));
+}
+
+function buildSettlementDetails(before, after, winnerIndex, potCashAwarded) {
+    const details = [{
+        type: "pot-award",
+        text: `${game.players[winnerIndex].name} received ${money(potCashAwarded)} from the collected pot.`
+    }];
+
+    before.forEach((beforePlayer, index) => {
+        const afterPlayer = after[index];
+        (beforePlayer.debts || []).forEach(debt => {
+            if (debt.type !== "player") return;
+            const afterDebt = (afterPlayer.debts || []).find(
+                item => item.type === "player" && item.playerIndex === debt.playerIndex
+            );
+            const remaining = afterDebt ? roundMoney(afterDebt.amount) : 0;
+            const settled = roundMoney(debt.amount - remaining);
+            if (settled > 0) {
+                details.push({
+                    type: "debt-settled",
+                    text: `${beforePlayer.name} settled ${money(settled)} owed to ${game.players[debt.playerIndex].name}.`
+                });
+            }
+        });
+    });
+
+    after.forEach(afterPlayer => {
+        (afterPlayer.debts || []).forEach(debt => {
+            if (debt.type !== "player") return;
+            details.push({
+                type: "remaining-debt",
+                text: `${afterPlayer.name} still owes ${game.players[debt.playerIndex].name} ${money(debt.amount)}.`
+            });
+        });
+    });
+    return details;
+}
+
+
 function transferPendingPotToWinner(
     winnerIndex
 ) {
@@ -955,6 +1027,9 @@ function finishRound(takeExistingPot) {
                     .potPendingBefore || 0
             );
 
+        const settlementBefore = captureSettlementState();
+        const collectedPotAwarded = roundMoney(game.pot);
+
         transferPendingPotToWinner(
             winnerIndex
         );
@@ -969,6 +1044,14 @@ function finishRound(takeExistingPot) {
 
         settlePlayerDebts(
             winnerIndex
+        );
+
+        const settlementAfter = captureSettlementState();
+        const settlementDetails = buildSettlementDetails(
+            settlementBefore,
+            settlementAfter,
+            winnerIndex,
+            collectedPotAwarded
         );
 
         game.players.forEach(
@@ -1026,6 +1109,9 @@ function finishRound(takeExistingPot) {
             pendingPotTransferred:
                 transferredPendingPot,
 
+            settlementDetails:
+                clone(settlementDetails),
+
             potKept: false,
 
             potAfter: 0,
@@ -1050,6 +1136,9 @@ function finishRound(takeExistingPot) {
             winnerIndex,
 
             potWon,
+
+            settlementDetails:
+                clone(settlementDetails),
 
             potAfter: 0,
 

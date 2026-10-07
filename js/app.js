@@ -576,7 +576,7 @@ document.getElementById(
     "confirmQuickPayButton"
 ).addEventListener(
     "click",
-    function () {
+    async function () {
 
         const receiverIndex = quickPayReceiverIndex;
 
@@ -641,14 +641,23 @@ document.getElementById(
             "quickPayOverlay"
         );
 
-        renderGame();
+        // Quick Pay is already confirmed and recorded in History.
+        // Keep the OLD balances visible while the money travels, then refresh the
+        // player cards AFTER the animation so the payer/payee amount changes are obvious.
+        const animationPayments = result.payments.map(payment => ({
+            from: payment.fromIndex,
+            amount: payment.amount
+        }));
 
-        showMessage(
-            "Payment Recorded",
-            `${result.receiverName} received ${money(
-                result.amountPerPlayer
-            )} from each selected player for ${result.reason}.`
+        await animateWinnerPayments(
+            animationPayments,
+            result.receiverIndex
         );
+
+        // Show the new balances only after the transfer completes.
+        refreshAllBalances();
+        saveGame();
+        renderGame();
     }
 );
 
@@ -896,6 +905,23 @@ document.getElementById(
 
 
 /* =========================================
+   SOUND SETTINGS
+========================================= */
+
+document.getElementById("soundEffectsToggle").addEventListener("click", function () {
+    setSoundEffectsEnabled(!soundSettings.soundEffects);
+    updateSoundSettingButtons();
+    if (soundSettings.soundEffects) playSoundEffect("magic");
+});
+
+document.getElementById("clickSoundsToggle").addEventListener("click", function () {
+    setClickSoundsEnabled(!soundSettings.clickSounds);
+    updateSoundSettingButtons();
+    if (soundSettings.clickSounds) playClickSound();
+});
+
+
+/* =========================================
    CLEAR ALL APP DATA
 ========================================= */
 
@@ -1118,14 +1144,24 @@ document.getElementById(
    MESSAGE
 ========================================= */
 
+let afterMessageClose = null;
+
+function closeMessageAndContinue() {
+    closeOverlay("messageOverlay");
+
+    const callback = afterMessageClose;
+    afterMessageClose = null;
+
+    if (typeof callback === "function") {
+        callback();
+    }
+}
+
 document.getElementById(
     "closeMessageButton"
 ).addEventListener(
     "click",
-    () =>
-        closeOverlay(
-            "messageOverlay"
-        )
+    closeMessageAndContinue
 );
 
 
@@ -1232,7 +1268,7 @@ function eggToast(message, duration = 2200) {
 
 function openPotPrediction() {
     if (!game || !game.players || !game.players.length) return;
-    document.getElementById("predictionRoulette").textContent = "Tap PREDICT";
+    document.getElementById("predictionRoulette").textContent = "Tap anywhere to predict";
     document.getElementById("predictionResult").textContent = "";
     document.getElementById("runPredictionButton").disabled = false;
     openOverlay("predictionOverlay");
@@ -1253,33 +1289,66 @@ document.getElementById("closePredictionButton").addEventListener("click", () =>
     if (!predictionRunning) closeOverlay("predictionOverlay");
 });
 
-document.getElementById("runPredictionButton").addEventListener("click", function () {
+function runPotPrediction() {
     if (!game || predictionRunning) return;
+
     predictionRunning = true;
-    this.disabled = true;
+    const button = document.getElementById("runPredictionButton");
+    if (button) button.disabled = true;
+
+    const modal = document.querySelector("#predictionOverlay .prediction-modal");
     const roulette = document.getElementById("predictionRoulette");
     const result = document.getElementById("predictionResult");
+
+    if (modal) modal.classList.add("prediction-awakening");
     roulette.classList.add("spinning");
-    result.textContent = "Consulting extremely reliable sources...";
+    result.textContent = "The cards are listening...";
+
     let ticks = 0;
     clearInterval(predictionTimer);
     predictionTimer = setInterval(() => {
         const p = game.players[ticks % game.players.length];
-        roulette.textContent = `${p.name} ${["🔮","🪙","✨"][ticks % 3]}`;
+        roulette.textContent = `${p.name} ${["🔮","⚡","🪙","✨","🔥"][ticks % 5]}`;
+        if (typeof playSoundEffect === "function") playSoundEffect("roll");
         ticks++;
-    }, 90);
+    }, 82);
+
     setTimeout(() => {
         clearInterval(predictionTimer);
         const winnerIndex = Math.floor(Math.random() * game.players.length);
         const player = game.players[winnerIndex];
+
         roulette.classList.remove("spinning");
-        roulette.textContent = `🔮 ${player.name}`;
-        result.textContent = `Prediction: ${player.name} will win the pot!`;
-        game.easterPrediction = { playerIndex: winnerIndex, playerName: player.name };
+        roulette.classList.add("prediction-reveal");
+        roulette.textContent = `🔮 ${player.name} 🔮`;
+        result.textContent = `THE PROPHECY CHOOSES ${player.name.toUpperCase()}!`;
+
+        if (modal) {
+            modal.classList.remove("prediction-awakening");
+            modal.classList.add("prediction-impact");
+            setTimeout(() => modal.classList.remove("prediction-impact"), 850);
+        }
+
+        if (typeof playSoundEffect === "function") playSoundEffect("reveal");
+        game.easterPrediction = { playerIndex: winnerIndex, playerName: player.name, round: game.round };
         saveGame();
+
+        setTimeout(() => roulette.classList.remove("prediction-reveal"), 1200);
         predictionRunning = false;
-        document.getElementById("runPredictionButton").disabled = false;
+        if (button) button.disabled = false;
     }, 2400);
+}
+
+document.getElementById("runPredictionButton").addEventListener("click", function (event) {
+    event.stopPropagation();
+    runPotPrediction();
+});
+
+// Only taps INSIDE the prediction popup trigger the prediction.
+// Tapping the dark backdrop remains a normal outside-click and must not start it.
+document.querySelector("#predictionOverlay .prediction-modal").addEventListener("click", function (event) {
+    if (event.target.closest("#closePredictionButton")) return;
+    runPotPrediction();
 });
 
 // Long-press a player card/avatar: Main Character Energy.
@@ -1290,6 +1359,7 @@ document.addEventListener("pointerdown", function (e) {
     eggLongPressTimer = setTimeout(() => {
         avatar.classList.add("easter-spin");
         eggToast("Main Character Energy ✨");
+        if (typeof playSoundEffect === "function") playSoundEffect("magic");
         setTimeout(() => avatar.classList.remove("easter-spin"), 1000);
     }, 3000);
 });
@@ -1307,6 +1377,7 @@ document.addEventListener("click", function (e) {
         streakEggTaps = [];
         streak.classList.add("easter-fire");
         eggToast("🔥 ON FIRE! 🔥");
+        if (typeof playSoundEffect === "function") playSoundEffect("fire");
         setTimeout(() => streak.classList.remove("easter-fire"), 2400);
     }
 });
@@ -1320,6 +1391,7 @@ function runPostRenderEasterEggs() {
         const area = document.getElementById("potArea");
         area.classList.add("easter-confetti");
         eggToast(`🪙 POT JACKPOT — ${money(milestone)}!`);
+        if (typeof playSoundEffect === "function") playSoundEffect("jackpot");
         setTimeout(() => area.classList.remove("easter-confetti"), 1300);
     }
 }

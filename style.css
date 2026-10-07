@@ -2373,3 +2373,72 @@ body[data-theme="light"] .modal { background: rgba(249,249,249,.97); }
 @keyframes eggFire { to { transform:scale(1.08); filter:drop-shadow(0 0 12px orange); } }
 @keyframes eggSpin { to { transform:rotate(360deg) scale(1.08); } }
 @keyframes eggCoins { 0%{opacity:0;transform:translateY(20px) scale(.7)} 35%{opacity:1} 100%{opacity:0;transform:translateY(-65px) scale(1.25)} }
+
+/* SOUND SETTINGS */
+.sound-settings-grid { display:grid; gap:8px; }
+.sound-setting-button { width:100%; min-height:50px; border:1px solid var(--border, rgba(127,127,127,.25)); border-radius:14px; background:var(--surface-2, rgba(127,127,127,.10)); color:inherit; font:inherit; font-weight:700; text-align:left; padding:0 16px; cursor:pointer; }
+.sound-setting-button.selected { border-color:#0a84ff; box-shadow:0 0 0 2px rgba(10,132,255,.18); }
+.sound-setting-help { margin:0 4px 8px; opacity:.62; font-size:.82rem; line-height:1.35; }
+
+
+/* =========================================
+   ENHANCED PREDICTION + EASTER EGG FEEDBACK
+========================================= */
+#predictionOverlay { cursor:pointer; }
+.prediction-modal { position:relative; }
+.prediction-modal::before {
+    content:""; position:absolute; inset:-35%; pointer-events:none; opacity:0;
+    background:conic-gradient(from 0deg, transparent, rgba(155,89,255,.22), transparent, rgba(255,193,7,.18), transparent);
+}
+.prediction-modal.prediction-awakening::before { opacity:1; animation:predictionAura 1.2s linear infinite; }
+.prediction-modal.prediction-impact { animation:predictionImpact .72s cubic-bezier(.18,.89,.32,1.28); }
+.prediction-roulette.spinning { animation:predictionCharge .16s ease-in-out infinite alternate; box-shadow:0 0 32px rgba(155,89,255,.22); }
+.prediction-roulette.prediction-reveal { animation:predictionReveal .9s cubic-bezier(.17,.89,.32,1.35); font-size:1.65rem; box-shadow:0 0 46px rgba(255,193,7,.35); }
+.prediction-result { font-size:1.25rem; letter-spacing:.02em; }
+.prediction-tap-hint {
+    width:100%; min-height:48px; border:0; background:transparent; color:inherit;
+    opacity:.7; font:inherit; font-size:.82rem; font-weight:900; letter-spacing:.12em; cursor:pointer;
+}
+.easter-toast {
+    bottom:calc(42px + env(safe-area-inset-bottom));
+    max-width:min(92vw,560px);
+    padding:20px 26px;
+    border-radius:24px;
+    font-size:clamp(1.05rem, 4.5vw, 1.4rem);
+    line-height:1.25;
+    letter-spacing:.01em;
+    box-shadow:0 16px 50px rgba(0,0,0,.42), 0 0 0 1px rgba(255,255,255,.12);
+    animation:easterToastEntrance .48s cubic-bezier(.18,.89,.32,1.28);
+}
+@keyframes predictionAura { to { transform:rotate(360deg); } }
+@keyframes predictionCharge { from { transform:scale(.985); filter:brightness(.9); } to { transform:scale(1.045); filter:brightness(1.25); } }
+@keyframes predictionReveal { 0%{transform:scale(.55);opacity:.15} 45%{transform:scale(1.18)} 70%{transform:scale(.96)} 100%{transform:scale(1);opacity:1} }
+@keyframes predictionImpact { 0%{transform:scale(1)} 35%{transform:scale(1.045)} 55%{transform:scale(.985)} 100%{transform:scale(1)} }
+@keyframes easterToastEntrance { from{opacity:0;transform:translateX(-50%) translateY(30px) scale(.82)} to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)} }
+
+/* Final pot settlement breakdown */
+.settlement-breakdown {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 14px 0 18px;
+    padding: 14px 16px;
+    border: 1px solid rgba(0,0,0,.10);
+    border-radius: 16px;
+    background: rgba(0,0,0,.035);
+    text-align: left;
+}
+.settlement-title {
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: .10em;
+    margin-bottom: 9px;
+    opacity: .65;
+}
+.settlement-row {
+    padding: 7px 0;
+    border-top: 1px solid rgba(0,0,0,.07);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.35;
+}
+.settlement-row.remaining-debt { font-weight: 900; }

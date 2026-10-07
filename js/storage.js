@@ -134,6 +134,7 @@ function clearAllAppData() {
     try {
         localStorage.removeItem(STORAGE_KEY);
         localStorage.removeItem("tongitsTrackerTheme");
+        localStorage.removeItem("tongitsTrackerSoundSettingsV1");
         game = null;
         return true;
     } catch (error) {

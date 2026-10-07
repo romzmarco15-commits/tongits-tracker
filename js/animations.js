@@ -225,6 +225,7 @@ async function animateWinnerPayments(
 
             setTimeout(
                 () => {
+                    if (typeof playSoundEffect === "function") playSoundEffect("coin");
 
                     createFlyingMoney(
                         `+${money(
@@ -249,6 +250,7 @@ async function animateWinnerPayments(
     flashWinner(
         winnerIndex
     );
+    if (typeof playSoundEffect === "function") playSoundEffect("win");
 }
 
 
@@ -281,6 +283,7 @@ async function animateRoundPotContribution() {
 
             setTimeout(
                 () => {
+                    if (typeof playSoundEffect === "function") playSoundEffect("coin");
 
                     createFlyingMoney(
                         `+${money(
@@ -328,6 +331,8 @@ async function animatePotToWinner(
             )
         );
 
+
+    if (typeof playSoundEffect === "function") playSoundEffect("potwin");
 
     createFlyingMoney(
         `+${money(amount)}`,

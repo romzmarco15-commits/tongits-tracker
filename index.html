@@ -798,6 +798,8 @@
             Final balances and history have been saved.
         </p>
 
+        <div id="gameFinishedSettlement" class="settlement-breakdown hidden"></div>
+
         <button
             id="finishedStartNewGameButton"
             class="primary-button"
@@ -1180,6 +1182,16 @@
 
         <div class="settings-divider"></div>
 
+        <div class="settings-section-title">SOUND</div>
+        <div class="sound-settings-grid">
+            <button id="soundEffectsToggle" class="sound-setting-button" type="button" aria-pressed="true">🔊 Sound Effects  ON</button>
+            <p class="sound-setting-help">Coins, wins, pot celebrations, prediction and Easter eggs.</p>
+            <button id="clickSoundsToggle" class="sound-setting-button" type="button" aria-pressed="true">👆 Click Sounds  ON</button>
+            <p class="sound-setting-help">Buttons, selections and normal interface taps.</p>
+        </div>
+
+        <div class="settings-divider"></div>
+
         <div class="settings-section-title">
             DATA
         </div>
@@ -1440,13 +1452,16 @@
     <p class="prediction-subtitle">The Tongits gods have spoken...</p>
     <div id="predictionRoulette" class="prediction-roulette">Tap PREDICT</div>
     <div id="predictionResult" class="prediction-result"></div>
-    <button id="runPredictionButton" class="primary-button full-width" type="button">PREDICT</button>
+    <button id="runPredictionButton" class="prediction-tap-hint" type="button" aria-label="Tap anywhere to predict">
+      ✨ TAP ANYWHERE TO PREDICT ✨
+    </button>
   </div>
 </div>
 <div id="easterToast" class="easter-toast hidden"></div>
 
 <script src="js/storage.js"></script>
 <script src="js/game.js"></script>
+<script src="js/sounds.js"></script>
 <script src="js/animations.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/app.js"></script>
