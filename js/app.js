@@ -319,30 +319,16 @@ document.getElementById(
                     return;
                 }
 
-                const checkbox =
-                    document.querySelector(
-                        `.fighter-checkbox[data-player="${index}"]`
-                    );
+                if (fightSelectedPlayers.includes(index)) {
+                    const input = document.getElementById(`fightAmount${index}`);
+                    const fightValue = input ? input.value : (fightAmounts[index] ?? "");
 
-                if (
-                    checkbox &&
-                    checkbox.checked
-                ) {
-                    const input =
-                        document.getElementById(
-                            `fightAmount${index}`
-                        );
-
-                    if (
-                        input.value.trim() === "" ||
-                        num(input.value) < 0
-                    ) {
+                    if (String(fightValue).trim() === "" || num(fightValue) < 0) {
                         invalid = true;
                         return;
                     }
 
-                    const base =
-                        num(input.value);
+                    const base = num(fightValue);
 
                     payments.push({
                         from: index,
@@ -350,7 +336,7 @@ document.getElementById(
 
                         amount: base,
                         baseAmount: base,
-                        quadraAmount: 0,
+                        bonusAmount: 0,
 
                         reason: "Fight"
                     });
@@ -366,7 +352,7 @@ document.getElementById(
 
                         amount: base,
                         baseAmount: base,
-                        quadraAmount: 0,
+                        bonusAmount: 0,
 
                         reason:
                             "Did not fight"
@@ -387,7 +373,7 @@ document.getElementById(
         pendingRound = {
             type: "Fight",
             winner: selectedWinner,
-            quadra: false,
+            bonusEnabled: false,
             payments
         };
 
@@ -415,22 +401,45 @@ document.getElementById(
 
 
 /* =========================================
-   QUADRA
+   BONUS
 ========================================= */
 
-document.getElementById(
-    "quadraCheckbox"
-).addEventListener(
-    "change",
-    function () {
+function updatePendingBonusFromInputs() {
+    if (!pendingRound || !pendingRound.bonusEnabled) return;
+    setPendingRoundBonus(
+        document.getElementById("bonusReason").value,
+        document.getElementById("bonusAmount").value
+    );
+    renderRoundSummary();
+}
 
-        setPendingRoundQuadra(
-            this.checked
+document.getElementById("bonusToggleButton").addEventListener("click", function () {
+    if (!pendingRound) return;
+
+    if (pendingRound.bonusEnabled) {
+        setPendingRoundBonus(
+            document.getElementById("bonusReason").value,
+            0
         );
-
-        renderRoundSummary();
+    } else {
+        const reason = game.rules.bonusReason || "Bonus";
+        const amount = game.rules.bonusAmount;
+        document.getElementById("bonusReason").value = reason;
+        document.getElementById("bonusAmount").value = amount;
+        setPendingRoundBonus(reason, amount);
     }
-);
+
+    const selected = Boolean(pendingRound.bonusEnabled);
+    document.getElementById("bonusDetails").classList.toggle("hidden", !selected);
+    this.classList.toggle("selected", selected);
+    this.setAttribute("aria-pressed", String(selected));
+    this.querySelector(".bonus-toggle-hint").textContent = selected ? "Selected" : "Tap to add";
+    renderRoundSummary();
+    activateSelectOnFocus();
+});
+
+document.getElementById("bonusReason").addEventListener("input", updatePendingBonusFromInputs);
+document.getElementById("bonusAmount").addEventListener("input", updatePendingBonusFromInputs);
 
 
 /* =========================================
@@ -564,24 +573,12 @@ document.getElementById(
 );
 
 document.getElementById(
-    "quickPayReceiver"
-).addEventListener(
-    "change",
-    renderQuickPayPayers
-);
-
-document.getElementById(
     "confirmQuickPayButton"
 ).addEventListener(
     "click",
     function () {
 
-        const receiverIndex =
-            Number(
-                document.getElementById(
-                    "quickPayReceiver"
-                ).value
-            );
+        const receiverIndex = quickPayReceiverIndex;
 
         const amount =
             num(
@@ -596,17 +593,12 @@ document.getElementById(
             ).value.trim() ||
             "Quick Pay";
 
-        const payerIndexes =
-            Array.from(
-                document.querySelectorAll(
-                    ".quick-pay-payer:checked"
-                )
-            ).map(
-                checkbox =>
-                    Number(
-                        checkbox.value
-                    )
-            );
+        const payerIndexes = [...quickPaySelectedPayers];
+
+        if (receiverIndex === null || receiverIndex === undefined) {
+            showMessage("Choose Receiver", "Select the player who receives the payment.");
+            return;
+        }
 
         if (amount <= 0) {
             showMessage(
@@ -893,7 +885,7 @@ document.getElementById(
 );
 
 document.getElementById(
-    "closeSettingsButton"
+    "topCloseSettingsButton"
 ).addEventListener(
     "click",
     () =>
@@ -902,14 +894,51 @@ document.getElementById(
         )
 );
 
+
+/* =========================================
+   CLEAR ALL APP DATA
+========================================= */
+
 document.getElementById(
-    "topCloseSettingsButton"
+    "clearAllDataButton"
 ).addEventListener(
     "click",
-    () =>
-        closeOverlay(
-            "settingsOverlay"
-        )
+    function () {
+        closeOverlay("settingsOverlay");
+        openOverlay("clearDataOverlay");
+    }
+);
+
+document.getElementById(
+    "cancelClearDataButton"
+).addEventListener(
+    "click",
+    () => closeOverlay("clearDataOverlay")
+);
+
+document.getElementById(
+    "topCloseClearDataButton"
+).addEventListener(
+    "click",
+    () => closeOverlay("clearDataOverlay")
+);
+
+document.getElementById(
+    "confirmClearDataButton"
+).addEventListener(
+    "click",
+    function () {
+        if (!clearAllAppData()) {
+            closeOverlay("clearDataOverlay");
+            showMessage(
+                "Unable to Clear Data",
+                "The app data could not be deleted from this device."
+            );
+            return;
+        }
+
+        window.location.reload();
+    }
 );
 
 
@@ -953,10 +982,11 @@ document.getElementById(
                     "settingTongitsPayment"
                 ).value,
 
-            quadraPayment:
-                document.getElementById(
-                    "settingQuadraPayment"
-                ).value,
+            bonusReason:
+                document.getElementById("settingBonusReason").value,
+
+            bonusAmount:
+                document.getElementById("settingBonusAmount").value,
 
             initialPot:
                 document.getElementById(

@@ -15,6 +15,12 @@ let setupPlayerData = [];
 let avatarEditingPlayer = null;
 let editingExistingGame = false;
 
+// Modern multi-select state (no checkboxes)
+let quickPayReceiverIndex = null;
+let quickPaySelectedPayers = [];
+let fightSelectedPlayers = [];
+let fightAmounts = {};
+
 
 /* =========================================
    HTML
@@ -1171,17 +1177,21 @@ function showRoundConfirmation() {
     ).textContent =
         `${winner.name} — ${pendingRound.type}`;
 
-    const quadraCheckbox =
-        document.getElementById(
-            "quadraCheckbox"
-        );
+    const bonusReason = pendingRound.bonusReason || game.rules.bonusReason || "Bonus";
+    const bonusAmount = pendingRound.bonusEnabled
+        ? (pendingRound.bonusAmount ?? game.rules.bonusAmount)
+        : game.rules.bonusAmount;
 
-    if (quadraCheckbox) {
-        quadraCheckbox.checked =
-            Boolean(
-                pendingRound.quadra
-            );
-    }
+    document.getElementById("bonusReason").value = bonusReason;
+    document.getElementById("bonusAmount").value = bonusAmount;
+
+    const bonusDetails = document.getElementById("bonusDetails");
+    const bonusButton = document.getElementById("bonusToggleButton");
+    bonusDetails.classList.toggle("hidden", !pendingRound.bonusEnabled);
+    bonusButton.classList.toggle("selected", Boolean(pendingRound.bonusEnabled));
+    bonusButton.setAttribute("aria-pressed", String(Boolean(pendingRound.bonusEnabled)));
+    bonusButton.querySelector(".bonus-toggle-hint").textContent =
+        pendingRound.bonusEnabled ? "Selected" : "Tap to add";
 
     renderRoundSummary();
 
@@ -1234,8 +1244,8 @@ function renderRoundSummary() {
             `;
 
             if (
-                pendingRound.quadra &&
-                payment.quadraAmount > 0
+                pendingRound.bonusEnabled &&
+                payment.bonusAmount > 0
             ) {
                 html += `
                     <div class="summary-sub-row">
@@ -1245,21 +1255,21 @@ function renderRoundSummary() {
                         base
                         +
                         ${money(
-                            payment.quadraAmount
+                            payment.bonusAmount
                         )}
-                        Quadra
+                        ${escapeHtml(pendingRound.bonusReason || "Bonus")}
                     </div>
                 `;
             }
         }
     );
 
-    if (pendingRound.quadra) {
+    if (pendingRound.bonusEnabled) {
         html += `
-            <div class="quadra-summary">
-                🃏 QUADRA BONUS:
+            <div class="bonus-summary">
+                🎁 ${escapeHtml(pendingRound.bonusReason || "Bonus").toUpperCase()}:
                 +${money(
-                    game.rules.quadraPayment
+                    pendingRound.bonusAmount
                 )}
                 from each opponent
             </div>
@@ -1366,135 +1376,61 @@ function showGameFinished(result) {
 ========================================= */
 
 function buildFight() {
-    const container =
-        document.getElementById(
-            "fightPlayers"
-        );
+    fightSelectedPlayers = [];
+    fightAmounts = {};
+    renderFightPlayers();
+}
 
-    container.innerHTML = "";
+function renderFightPlayers() {
+    const container = document.getElementById("fightPlayers");
+    const opponents = game.players
+        .map((player, index) => ({ player, index }))
+        .filter(item => item.index !== selectedWinner);
 
-    game.players.forEach(
-        (player, index) => {
+    container.innerHTML = `
+        <div class="quick-pay-section-title">WHO FOUGHT?</div>
+        <div class="player-select-grid fight-select-grid">
+            ${opponents.map(({ player, index }) => `
+                <button type="button" class="player-select-button ${fightSelectedPlayers.includes(index) ? "selected" : ""}"
+                    data-fight-player="${index}" aria-pressed="${fightSelectedPlayers.includes(index)}">
+                    <span class="player-select-avatar">${avatarContent(player.avatar)}</span>
+                    <span class="player-select-name">${escapeHtml(player.name)}</span>
+                </button>`).join("")}
+        </div>
+        <div class="fight-payment-list">
+            ${opponents.map(({ player, index }) => fightSelectedPlayers.includes(index) ? `
+                <div class="ios-list-row fight-amount-row">
+                    <div><strong>${escapeHtml(player.name)}</strong><div class="ios-row-note">Fight payment</div></div>
+                    <input id="fightAmount${index}" class="select-on-focus fight-inline-input" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Amount" value="${escapeAttribute(fightAmounts[index] ?? "")}">
+                </div>` : `
+                <div class="ios-list-row fight-default-row">
+                    <div><strong>${escapeHtml(player.name)}</strong><div class="ios-row-note">Did not fight</div></div>
+                    <strong>${money(game.rules.drawPayment)}</strong>
+                </div>`).join("")}
+        </div>`;
 
-            if (
-                index === selectedWinner
-            ) {
-                return;
+    container.querySelectorAll("[data-fight-player]").forEach(button => {
+        button.addEventListener("click", () => {
+            document.querySelectorAll(".fight-inline-input").forEach(input => {
+                const idx = Number(input.id.replace("fightAmount", ""));
+                fightAmounts[idx] = input.value;
+            });
+            const index = Number(button.dataset.fightPlayer);
+            if (fightSelectedPlayers.includes(index)) {
+                fightSelectedPlayers = fightSelectedPlayers.filter(i => i !== index);
+            } else {
+                fightSelectedPlayers.push(index);
             }
-
-            const row =
-                document.createElement(
-                    "div"
-                );
-
-            row.className =
-                "fight-player";
-
-            row.innerHTML = `
-                <div class="fight-player-header">
-
-                    <div class="fight-player-identity">
-
-                        <div class="fight-avatar">
-                            ${avatarContent(
-                                player.avatar
-                            )}
-                        </div>
-
-                        <div class="fight-player-name">
-                            ${escapeHtml(
-                                player.name
-                            )}
-                        </div>
-
-                    </div>
-
-                    <label class="fight-toggle">
-
-                        <input
-                            class="fighter-checkbox"
-                            data-player="${index}"
-                            type="checkbox"
-                        >
-
-                        Fought
-
-                    </label>
-
-                </div>
-
-                <div
-                    id="fightPayment${index}"
-                    class="fight-payment hidden"
-                >
-
-                    <label>
-                        Amount to winner
-                    </label>
-
-                    <input
-                        id="fightAmount${index}"
-                        class="select-on-focus"
-                        type="number"
-                        inputmode="decimal"
-                        min="0"
-                        step="0.01"
-                        placeholder="Enter amount"
-                    >
-
-                </div>
-
-                <div
-                    id="fightDefault${index}"
-                    class="fight-default"
-                >
-                    Did not fight →
-                    ${money(
-                        game.rules.drawPayment
-                    )}
-                </div>
-            `;
-
-            container.appendChild(row);
-        }
-    );
-
-    document
-        .querySelectorAll(
-            ".fighter-checkbox"
-        )
-        .forEach(checkbox => {
-
-            checkbox.addEventListener(
-                "change",
-                function () {
-
-                    const index =
-                        Number(
-                            this.dataset.player
-                        );
-
-                    document
-                        .getElementById(
-                            `fightPayment${index}`
-                        )
-                        .classList.toggle(
-                            "hidden",
-                            !this.checked
-                        );
-
-                    document
-                        .getElementById(
-                            `fightDefault${index}`
-                        )
-                        .classList.toggle(
-                            "hidden",
-                            this.checked
-                        );
-                }
-            );
+            renderFightPlayers();
         });
+    });
 
+    container.querySelectorAll(".fight-inline-input").forEach(input => {
+        input.addEventListener("input", () => {
+            const idx = Number(input.id.replace("fightAmount", ""));
+            fightAmounts[idx] = input.value;
+        });
+    });
     activateSelectOnFocus();
 }
 
@@ -1504,115 +1440,59 @@ function buildFight() {
 ========================================= */
 
 function openQuickPay() {
-    if (
-        !game ||
-        game.finished
-    ) {
-        return;
-    }
-
-    const receiverSelect =
-        document.getElementById(
-            "quickPayReceiver"
-        );
-
-    receiverSelect.innerHTML = "";
-
-    game.players.forEach(
-        (player, index) => {
-
-            const option =
-                document.createElement(
-                    "option"
-                );
-
-            option.value = index;
-            option.textContent =
-                player.name;
-
-            receiverSelect.appendChild(
-                option
-            );
-        }
-    );
-
-    document.getElementById(
-        "quickPayAmount"
-    ).value = 1;
-
-    document.getElementById(
-        "quickPayReason"
-    ).value = "Sagasa";
-
-    renderQuickPayPayers();
-
-    openOverlay(
-        "quickPayOverlay"
-    );
-
+    if (!game || game.finished) return;
+    quickPayReceiverIndex = null;
+    quickPaySelectedPayers = [];
+    document.getElementById("quickPayAmount").value = 1;
+    document.getElementById("quickPayReason").value = "Sagasa";
+    renderQuickPaySelectors();
+    openOverlay("quickPayOverlay");
     activateSelectOnFocus();
 }
 
-function renderQuickPayPayers() {
-    const receiverIndex =
-        Number(
-            document.getElementById(
-                "quickPayReceiver"
-            ).value
-        );
+function renderQuickPaySelectors() {
+    const receivers = document.getElementById("quickPayReceivers");
+    const payers = document.getElementById("quickPayPayers");
 
-    const container =
-        document.getElementById(
-            "quickPayPayers"
-        );
+    receivers.innerHTML = game.players.map((player, index) => `
+        <button type="button" class="player-select-button ${quickPayReceiverIndex === index ? "selected receiver-selected" : ""}"
+            data-quick-receiver="${index}" aria-pressed="${quickPayReceiverIndex === index}">
+            <span class="player-select-avatar">${avatarContent(player.avatar)}</span>
+            <span class="player-select-name">${escapeHtml(player.name)}</span>
+        </button>`).join("");
 
-    container.innerHTML = "";
+    if (quickPayReceiverIndex === null) {
+        payers.innerHTML = '<div class="selection-hint">Choose who receives first.</div>';
+    } else {
+        payers.innerHTML = `<div class="player-select-grid">${game.players.map((player, index) => {
+            if (index === quickPayReceiverIndex) return "";
+            const selected = quickPaySelectedPayers.includes(index);
+            return `<button type="button" class="player-select-button ${selected ? "selected" : ""}" data-quick-payer="${index}" aria-pressed="${selected}">
+                <span class="player-select-avatar">${avatarContent(player.avatar)}</span>
+                <span class="player-select-name">${escapeHtml(player.name)}</span>
+            </button>`;
+        }).join("")}</div>`;
+    }
 
-    game.players.forEach(
-        (player, index) => {
+    receivers.querySelectorAll("[data-quick-receiver]").forEach(button => {
+        button.addEventListener("click", () => {
+            quickPayReceiverIndex = Number(button.dataset.quickReceiver);
+            quickPaySelectedPayers = game.players.map((_, i) => i).filter(i => i !== quickPayReceiverIndex);
+            renderQuickPaySelectors();
+        });
+    });
 
-            if (index === receiverIndex) {
-                return;
+    payers.querySelectorAll("[data-quick-payer]").forEach(button => {
+        button.addEventListener("click", () => {
+            const index = Number(button.dataset.quickPayer);
+            if (quickPaySelectedPayers.includes(index)) {
+                quickPaySelectedPayers = quickPaySelectedPayers.filter(i => i !== index);
+            } else {
+                quickPaySelectedPayers.push(index);
             }
-
-            const label =
-                document.createElement(
-                    "label"
-                );
-
-            label.className =
-                "quick-pay-player";
-
-            label.innerHTML = `
-                <div class="quick-pay-identity">
-
-                    <div class="quick-pay-avatar">
-                        ${avatarContent(
-                            player.avatar
-                        )}
-                    </div>
-
-                    <span>
-                        ${escapeHtml(
-                            player.name
-                        )}
-                    </span>
-
-                </div>
-
-                <input
-                    class="quick-pay-payer"
-                    type="checkbox"
-                    value="${index}"
-                    checked
-                >
-            `;
-
-            container.appendChild(
-                label
-            );
-        }
-    );
+            renderQuickPaySelectors();
+        });
+    });
 }
 
 
@@ -1663,13 +1543,13 @@ function openRules() {
 
         <div class="rule-card">
             <div class="rule-title">
-                Quadra
+                Bonus
             </div>
 
             <div class="rule-description">
-                If the round winner has Quadra,
-                every opponent pays an additional
-                ${money(r.quadraPayment)}.
+                Default reason: ${escapeHtml(r.bonusReason || "Bonus")}.
+                Default amount: ${money(r.bonusAmount)} per opponent.
+                Both can be changed for an individual round before confirming it.
             </div>
         </div>
 
@@ -1767,10 +1647,9 @@ function openSettings() {
     ).value =
         game.rules.tongitsPayment;
 
-    document.getElementById(
-        "settingQuadraPayment"
-    ).value =
-        game.rules.quadraPayment;
+    document.getElementById("settingBonusReason").value = game.rules.bonusReason || "Bonus";
+
+    document.getElementById("settingBonusAmount").value = game.rules.bonusAmount;
 
     document.getElementById(
         "settingInitialPot"
@@ -1834,7 +1713,11 @@ function openHistory() {
                 );
 
             item.className =
-                "history-item";
+                `history-item${entry.undone ? " undone" : ""}`;
+
+            const undoneBadge = entry.undone
+                ? `<div class="history-undone-badge">↶ UNDONE</div>`
+                : "";
 
 
             /* QUICK PAY */
@@ -1878,6 +1761,7 @@ function openHistory() {
                         .join("");
 
                 item.innerHTML = `
+                    ${undoneBadge}
                     <div class="history-header">
 
                         <div class="history-round">
@@ -1941,7 +1825,7 @@ function openHistory() {
                         `;
 
                         if (
-                            payment.quadraAmount > 0
+                            payment.bonusAmount > 0
                         ) {
                             detail += `
                                 (${money(
@@ -1949,9 +1833,9 @@ function openHistory() {
                                 )}
                                 +
                                 ${money(
-                                    payment.quadraAmount
+                                    payment.bonusAmount
                                 )}
-                                Quadra)
+                                ${escapeHtml(pendingRound.bonusReason || "Bonus")})
                             `;
                         }
 
@@ -1980,16 +1864,12 @@ function openHistory() {
                     })
                     .join("");
 
-            let quadraText = "";
+            let bonusText = "";
 
-            if (entry.quadra) {
-                quadraText = `
-                    <div class="history-quadra">
-                        🃏 Quadra +
-                        ${money(
-                            entry.quadraPayment
-                        )}
-                        per opponent
+            if (entry.bonusEnabled) {
+                bonusText = `
+                    <div class="history-bonus">
+                        🎁 ${escapeHtml(entry.bonusReason || "Bonus")} +${money(entry.bonusAmount)} per opponent
                     </div>
                 `;
             }
@@ -2068,6 +1948,7 @@ function openHistory() {
                     `;
 
             item.innerHTML = `
+                    ${undoneBadge}
                 <div class="history-header">
 
                     <div class="history-round">
@@ -2097,7 +1978,7 @@ function openHistory() {
 
                 </div>
 
-                ${quadraText}
+                ${bonusText}
 
                 <div class="history-details">
 

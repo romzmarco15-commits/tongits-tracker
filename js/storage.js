@@ -129,3 +129,15 @@ function loadGame() {
         return false;
     }
 }
+
+function clearAllAppData() {
+    try {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem("tongitsTrackerTheme");
+        game = null;
+        return true;
+    } catch (error) {
+        console.error("Unable to clear app data:", error);
+        return false;
+    }
+}

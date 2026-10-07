@@ -1,7 +1,8 @@
 const DEFAULT_RULES = {
     drawPayment: 2,
     tongitsPayment: 4,
-    quadraPayment: 2,
+    bonusAmount: 2,
+    bonusReason: "Quadra",
     roundPot: 2,
     potWinStreak: 3
 };
@@ -137,9 +138,14 @@ function ensureDebtState() {
         game.rules = clone(DEFAULT_RULES);
     }
 
-    if (game.rules.quadraPayment === undefined) {
-        game.rules.quadraPayment = 2;
+    if (game.rules.bonusAmount === undefined) {
+        game.rules.bonusAmount = 2;
     }
+
+    if (game.rules.bonusReason === undefined) {
+        game.rules.bonusReason = "Quadra";
+    }
+
 
     if (game.rules.drawPayment === undefined) {
         game.rules.drawPayment = 2;
@@ -575,7 +581,7 @@ function prepareNormalRound(type) {
                 to: selectedWinner,
                 amount: paymentAmount,
                 baseAmount: paymentAmount,
-                quadraAmount: 0,
+                bonusAmount: 0,
                 reason: type
             });
         }
@@ -584,24 +590,23 @@ function prepareNormalRound(type) {
     pendingRound = {
         type,
         winner: selectedWinner,
-        quadra: false,
+        bonusEnabled: false,
         payments
     };
 }
 
 
 /* =========================================
-   QUADRA
+   BONUS
 ========================================= */
 
-function setPendingRoundQuadra(enabled) {
+function setPendingRoundBonus(reason, amount) {
     if (!pendingRound) return;
 
-    pendingRound.quadra = Boolean(enabled);
-
-    const bonus = pendingRound.quadra
-        ? game.rules.quadraPayment
-        : 0;
+    const bonus = Math.max(0, roundMoney(amount));
+    pendingRound.bonusEnabled = bonus > 0;
+    pendingRound.bonusReason = String(reason || game.rules.bonusReason || "Bonus").trim() || "Bonus";
+    pendingRound.bonusAmount = bonus;
 
     pendingRound.payments.forEach(payment => {
         const base =
@@ -612,13 +617,13 @@ function setPendingRoundQuadra(enabled) {
         payment.baseAmount =
             roundMoney(base);
 
-        payment.quadraAmount =
+        payment.bonusAmount =
             roundMoney(bonus);
 
         payment.amount =
             roundMoney(
                 payment.baseAmount +
-                payment.quadraAmount
+                payment.bonusAmount
             );
     });
 }
@@ -678,8 +683,8 @@ function beginRoundSettlement() {
                         payment.baseAmount ??
                         payment.amount,
 
-                    quadraAmount:
-                        payment.quadraAmount || 0,
+                    bonusAmount:
+                        payment.bonusAmount || 0,
 
                     paid:
                         result.paid,
@@ -990,15 +995,11 @@ function finishRound(takeExistingPot) {
             winnerAvatar:
                 clone(winner.avatar),
 
-            quadra:
-                Boolean(
-                    pendingRound.quadra
-                ),
+            bonusEnabled: Boolean(pendingRound.bonusEnabled),
 
-            quadraPayment:
-                pendingRound.quadra
-                    ? game.rules.quadraPayment
-                    : 0,
+            bonusReason: pendingRound.bonusReason || game.rules.bonusReason || "Bonus",
+
+            bonusAmount: pendingRound.bonusEnabled ? pendingRound.bonusAmount : 0,
 
             payments:
                 clone(
@@ -1102,15 +1103,11 @@ function finishRound(takeExistingPot) {
         winnerAvatar:
             clone(winner.avatar),
 
-        quadra:
-            Boolean(
-                pendingRound.quadra
-            ),
+        bonusEnabled: Boolean(pendingRound.bonusEnabled),
 
-        quadraPayment:
-            pendingRound.quadra
-                ? game.rules.quadraPayment
-                : 0,
+        bonusReason: pendingRound.bonusReason || game.rules.bonusReason || "Bonus",
+
+        bonusAmount: pendingRound.bonusEnabled ? pendingRound.bonusAmount : 0,
 
         payments:
             clone(
@@ -1221,8 +1218,21 @@ function undoLastRound() {
     game.rules =
         snapshot.rules;
 
-    game.history =
-        snapshot.history;
+    // Keep the audit trail. Undo reverses the game state, but the
+    // original history record remains visible and is marked UNDONE.
+    const auditHistory = Array.isArray(game.history)
+        ? game.history
+        : [];
+
+    for (let i = auditHistory.length - 1; i >= 0; i--) {
+        if (!auditHistory[i].undone) {
+            auditHistory[i].undone = true;
+            auditHistory[i].undoneAt = Date.now();
+            break;
+        }
+    }
+
+    game.history = auditHistory;
 
     game.lastWinner =
         snapshot.lastWinner;
@@ -1272,13 +1282,15 @@ function updateGameSettings(settings) {
             )
         );
 
-    game.rules.quadraPayment =
+    game.rules.bonusAmount =
         Math.max(
             0,
             roundMoney(
-                settings.quadraPayment
+                settings.bonusAmount
             )
         );
+
+    game.rules.bonusReason = String(settings.bonusReason || "Bonus").trim() || "Bonus";
 
     game.rules.roundPot =
         Math.max(

@@ -1978,7 +1978,7 @@ body[data-theme="light"]
     flex: 0 0 24px;
 }
 
-.quadra-summary {
+.bonus-summary {
     margin: 10px 0;
     padding: 10px 12px;
 
@@ -2002,7 +2002,7 @@ body[data-theme="light"]
     font-size: 10px;
 }
 
-.history-quadra {
+.history-bonus {
     margin: 8px 0;
     padding: 8px 10px;
 
@@ -2013,4 +2013,344 @@ body[data-theme="light"]
 
     font-size: 12px;
     font-weight: 900;
+}
+/* =========================================================
+   iOS-INSPIRED UI REFRESH + MODERN PLAYER SELECTION
+   ========================================================= */
+:root {
+    --ios-blue: #0a84ff;
+    --ios-blue-soft: rgba(10, 132, 255, .16);
+    --ios-separator: rgba(84, 84, 88, .45);
+    --ios-card-radius: 20px;
+    --ios-control-radius: 14px;
+}
+
+body[data-theme="light"] {
+    --bg: #f2f2f7;
+    --surface: rgba(255,255,255,.94);
+    --surface-2: #ffffff;
+    --surface-3: #f2f2f7;
+    --border: rgba(60,60,67,.18);
+    --ios-separator: rgba(60,60,67,.20);
+}
+
+body[data-theme="dark"] {
+    --bg: #000000;
+    --surface: #1c1c1e;
+    --surface-2: #2c2c2e;
+    --surface-3: #242426;
+    --border: rgba(84,84,88,.52);
+    --ios-separator: rgba(84,84,88,.52);
+}
+
+html, body { min-height: 100%; }
+body {
+    letter-spacing: -.01em;
+    -webkit-font-smoothing: antialiased;
+    background: var(--bg);
+}
+
+.app { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+.header {
+    padding-top: max(14px, env(safe-area-inset-top));
+    backdrop-filter: saturate(180%) blur(18px);
+    -webkit-backdrop-filter: saturate(180%) blur(18px);
+}
+
+.setup-card, .player, .rule-card, .history-item, .game-finished-banner {
+    border-radius: var(--ios-card-radius);
+    box-shadow: 0 1px 0 rgba(255,255,255,.04), 0 8px 28px rgba(0,0,0,.10);
+}
+
+button, input, select { -webkit-appearance: none; appearance: none; }
+input, select {
+    min-height: 46px;
+    border-radius: 12px;
+    background: var(--surface-3);
+}
+
+.primary-button, .win-button, .quick-pay-main-button {
+    min-height: 50px;
+    border-radius: var(--ios-control-radius);
+    border: 0;
+    font-weight: 800;
+    letter-spacing: .01em;
+}
+.primary-button, .win-button { box-shadow: 0 5px 16px rgba(52,199,89,.16); }
+.secondary-button, .cancel-button, .back-button, .count-button, .top-close-button {
+    border-radius: var(--ios-control-radius);
+}
+button:active { transform: scale(.975); opacity: .88; }
+
+.overlay {
+    align-items: flex-end;
+    padding: 0;
+    background: rgba(0,0,0,.52);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+.modal {
+    width: min(100%, 620px);
+    max-height: min(88vh, 900px);
+    overflow-y: auto;
+    margin: 0 auto;
+    padding: 22px 20px max(22px, env(safe-area-inset-bottom));
+    border: 1px solid var(--border);
+    border-bottom: 0;
+    border-radius: 26px 26px 0 0;
+    background: rgba(28,28,30,.97);
+    box-shadow: 0 -14px 45px rgba(0,0,0,.28);
+    backdrop-filter: saturate(180%) blur(24px);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+}
+body[data-theme="light"] .modal { background: rgba(249,249,249,.97); }
+.modal::before {
+    content: "";
+    display: block;
+    width: 38px;
+    height: 5px;
+    margin: -10px auto 14px;
+    border-radius: 999px;
+    background: var(--text-muted);
+    opacity: .45;
+}
+
+/* Circular player chips used by Fight and Quick Pay */
+.player-select-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+    gap: 14px 10px;
+    margin: 10px 0 18px;
+}
+.player-select-button {
+    min-width: 0;
+    padding: 2px;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 7px;
+    text-align: center;
+}
+.player-select-avatar {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 3px solid transparent;
+    border-radius: 50%;
+    background: var(--surface-2);
+    box-shadow: inset 0 0 0 1px var(--border), 0 3px 12px rgba(0,0,0,.14);
+    font-size: 36px;
+    transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+.player-select-avatar img { width:100%; height:100%; object-fit:cover; }
+.player-select-name {
+    max-width: 86px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-soft);
+    font-size: 12px;
+    font-weight: 700;
+}
+.player-select-button.selected .player-select-avatar {
+    border-color: var(--ios-blue);
+    box-shadow: 0 0 0 4px var(--ios-blue-soft), 0 5px 15px rgba(0,0,0,.16);
+    transform: scale(1.045);
+}
+.player-select-button.selected .player-select-avatar::after {
+    content: "✓";
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    width: 21px;
+    height: 21px;
+    display: grid;
+    place-items: center;
+    border: 2px solid var(--surface);
+    border-radius: 50%;
+    background: var(--ios-blue);
+    color: white;
+    font-size: 12px;
+    font-weight: 900;
+}
+.player-select-button.selected .player-select-name { color: var(--ios-blue); font-weight: 800; }
+.selection-hint {
+    padding: 16px;
+    border-radius: 14px;
+    background: var(--surface-3);
+    color: var(--text-muted);
+    text-align: center;
+    font-size: 13px;
+}
+
+/* Quick Pay no longer uses old checkbox rows */
+.quick-pay-payers { display: block; margin-bottom: 18px; }
+.quick-pay-section-title {
+    margin: 20px 0 4px;
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .08em;
+}
+
+/* Fight selected players + amounts */
+.fight-payment-list {
+    margin: 6px 0 16px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface-3);
+}
+.ios-list-row {
+    min-height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 13px;
+    border-bottom: 1px solid var(--ios-separator);
+}
+.ios-list-row:last-child { border-bottom: 0; }
+.ios-row-note { margin-top:2px; color:var(--text-muted); font-size:11px; }
+.fight-inline-input {
+    width: 110px;
+    min-height: 38px;
+    padding: 6px 10px;
+    text-align: right;
+}
+
+/* Quadra is now a full tappable iOS-style selection panel */
+.quadra-toggle.ios-select-panel {
+    width: 100%;
+    min-height: 68px;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--surface-3);
+    color: var(--text);
+    text-align: left;
+}
+.ios-toggle-indicator {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--surface-2);
+    color: transparent;
+    font-weight: 900;
+    transition: .16s ease;
+}
+.quadra-toggle.selected {
+    border-color: var(--ios-blue);
+    background: var(--ios-blue-soft);
+}
+.quadra-toggle.selected .ios-toggle-indicator { background: var(--ios-blue); color:#fff; }
+.quadra-toggle.selected .quadra-toggle-title { color: var(--ios-blue); }
+
+@media (min-width: 700px) {
+    .overlay { align-items: center; padding: 24px; }
+    .modal { border-bottom:1px solid var(--border); border-radius:26px; }
+    .modal::before { display:none; }
+}
+
+@media (max-width: 600px) {
+    .player-select-grid { grid-template-columns: repeat(3, 1fr); }
+    .player-select-avatar { width: 68px; height: 68px; }
+    .modal h2 { font-size: 22px; }
+}
+
+
+/* BONUS — iOS grouped form */
+.bonus-panel { margin: 14px 0 18px; padding: 16px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface-2); }
+.bonus-title { margin-bottom: 12px; font-size: 14px; font-weight: 900; letter-spacing: .5px; }
+.bonus-panel .field:last-child { margin-bottom: 0; }
+.field-note { margin-top: 6px; color: var(--text-muted); font-size: 11px; line-height: 1.35; }
+
+
+/* BONUS SELECTOR */
+.bonus-toggle-button {
+    width: 100%; margin: 14px 0 10px; padding: 15px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    border: 1px solid var(--border); border-radius: 16px;
+    background: var(--surface-2); color: var(--text);
+    font: inherit; font-weight: 850; cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.bonus-toggle-button.selected {
+    border-color: #0a84ff;
+    box-shadow: 0 0 0 3px rgba(10,132,255,.16);
+}
+.bonus-toggle-hint { color: var(--text-muted); font-size: 12px; font-weight: 700; }
+.bonus-toggle-button.selected .bonus-toggle-hint { color: #0a84ff; }
+
+/* PERMANENT AUDIT HISTORY */
+.history-item.undone {
+    opacity: .46;
+    filter: grayscale(.72);
+}
+.history-item.undone .history-payment,
+.history-item.undone .history-bonus,
+.history-item.undone .history-pot {
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+}
+.history-undone-badge {
+    display: inline-flex; align-items: center;
+    margin: 0 0 9px; padding: 4px 8px;
+    border-radius: 999px; background: rgba(142,142,147,.16);
+    color: var(--text-muted); font-size: 10px; font-weight: 900; letter-spacing: .7px;
+}
+
+
+/* =========================================
+   DATA / DESTRUCTIVE ACTIONS
+========================================= */
+
+.danger-management-button,
+.danger-button {
+    width: 100%;
+    min-height: 50px;
+    border: 0;
+    border-radius: 14px;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.danger-management-button {
+    background: rgba(255, 69, 58, 0.12);
+    color: #ff453a;
+}
+
+.danger-button {
+    background: #ff3b30;
+    color: #fff;
+}
+
+.data-warning-text {
+    margin: 8px 4px 0;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    opacity: 0.65;
+}
+
+.confirmation-actions {
+    display: grid;
+    grid-template-columns: 1fr 1.25fr;
+    gap: 10px;
+    margin-top: 22px;
+}
+
+@media (max-width: 520px) {
+    .confirmation-actions {
+        grid-template-columns: 1fr;
+    }
 }
