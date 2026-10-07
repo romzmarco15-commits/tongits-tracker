@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+
+    <meta
+        name="theme-color"
+        content="#0f1115"
+    >
+
+    <title>Tongits Tracker</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+</head>
+
+<body data-theme="dark">
+
+<div class="app">
+
+    <!-- =========================
+         SETUP
+    ========================== -->
+
+    <section id="setupScreen">
+
+        <header class="header">
+
+            <h1>Tongits</h1>
+
+            <button
+                id="backToGameButton"
+                class="back-button hidden"
+                type="button"
+            >
+                ← Back to Game
+            </button>
+
+        </header>
+
+
+        <main class="setup">
+
+            <h2 id="setupTitle">
+                New Game
+            </h2>
+
+            <p
+                id="setupSubtitle"
+                class="subtitle"
+            >
+                Set your players and starting money.
+            </p>
+
+
+            <div class="setup-card">
+
+                <h3>
+                    Number of Players
+                </h3>
+
+                <div class="player-count-control">
+
+                    <button
+                        id="decreasePlayersButton"
+                        class="count-button"
+                        type="button"
+                    >
+                        −
+                    </button>
+
+                    <div
+                        id="playerCountDisplay"
+                        class="player-count"
+                    >
+                        3
+                    </div>
+
+                    <button
+                        id="increasePlayersButton"
+                        class="count-button"
+                        type="button"
+                    >
+                        +
+                    </button>
+
+                </div>
+
+                <div class="player-count-note">
+                    2–6 players
+                </div>
+
+            </div>
+
+
+            <div id="setupPlayers"></div>
+
+
+            <div class="setup-card">
+
+                <h3>Game</h3>
+
+                <div class="field">
+
+                    <label for="initialPot">
+                        Initial Pot / Player
+                    </label>
+
+                    <input
+                        id="initialPot"
+                        class="select-on-focus"
+                        type="number"
+                        inputmode="decimal"
+                        min="0"
+                        step="0.01"
+                        value="4"
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label for="roundPot">
+                        Round Pot / Player
+                    </label>
+
+                    <input
+                        id="roundPot"
+                        class="select-on-focus"
+                        type="number"
+                        inputmode="decimal"
+                        min="0"
+                        step="0.01"
+                        value="2"
+                    >
+
+                </div>
+
+
+                <div class="field">
+
+                    <label for="currency">
+                        Currency
+                    </label>
+
+                    <select id="currency">
+
+                        <option
+                            value="S$"
+                            selected
+                        >
+                            S$ Singapore Dollar
+                        </option>
+
+                        <option value="$">
+                            $ Dollar
+                        </option>
+
+                        <option value="₱">
+                            ₱ Philippine Peso
+                        </option>
+
+                        <option value="RM">
+                            RM Malaysian Ringgit
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <button
+                id="startGameButton"
+                class="primary-button"
+                type="button"
+            >
+                START GAME
+            </button>
+
+        </main>
+
+    </section>
+
+
+
+    <!-- =========================
+         GAME
+    ========================== -->
+
+    <section
+        id="gameScreen"
+        class="hidden"
+    >
+
+        <header class="header game-header">
+
+            <h1>Tongits</h1>
+
+            <div class="header-actions">
+
+                <button
+                    id="rulesButton"
+                    class="icon-button"
+                    type="button"
+                >
+                    ?
+                </button>
+
+                <button
+                    id="settingsButton"
+                    class="icon-button"
+                    type="button"
+                >
+                    ⚙️
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <div class="round-header">
+            ROUND
+            <span id="roundDisplay">
+                1
+            </span>
+        </div>
+
+
+        <!-- FINISHED BANNER -->
+
+        <div
+            id="gameFinishedBanner"
+            class="game-finished-banner hidden"
+        >
+
+            <div
+                id="finishedWinnerAvatar"
+                class="finished-banner-avatar"
+            >
+                😎
+            </div>
+
+            <div class="finished-banner-info">
+
+                <div class="finished-label">
+                    🏁 GAME FINISHED
+                </div>
+
+                <div
+                    id="finishedWinnerName"
+                    class="finished-winner-name"
+                >
+                    Player won the pot
+                </div>
+
+                <div
+                    id="finishedPotAmount"
+                    class="finished-pot-amount"
+                >
+                    S$0
+                </div>
+
+            </div>
+
+            <button
+                id="finalScreenNewGameButton"
+                class="primary-button"
+                type="button"
+            >
+                START NEW GAME
+            </button>
+
+        </div>
+
+
+        <!-- POT -->
+
+        <section
+            id="potArea"
+            class="pot-area"
+        >
+
+            <div class="pot-heading">
+                🪙 CURRENT POT
+            </div>
+
+            <div
+                id="potDisplay"
+                class="pot-amount"
+            >
+                S$0
+            </div>
+
+            <div class="pot-visual">
+
+                <div class="pot-rim"></div>
+
+                <div class="pot-container">
+
+                    <div
+                        id="potFill"
+                        class="pot-fill"
+                    ></div>
+
+                    <div
+                        id="potCoins"
+                        class="pot-coins"
+                    >
+                        🪙
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="pot-meter">
+
+                <div
+                    id="potMeterFill"
+                    class="pot-meter-fill"
+                ></div>
+
+            </div>
+
+            <div
+                id="potStatus"
+                class="pot-status"
+            >
+                POT STARTED
+            </div>
+
+        </section>
+
+
+        <div
+            id="playersContainer"
+            class="players"
+        ></div>
+
+
+        <div class="bottom-buttons">
+
+            <button
+                id="undoButton"
+                class="secondary-button"
+                type="button"
+            >
+                ↶ Undo
+            </button>
+
+            <button
+                id="historyButton"
+                class="secondary-button"
+                type="button"
+            >
+                History
+            </button>
+
+        </div>
+
+    </section>
+
+</div>
+
+
+
+<div
+    id="animationLayer"
+    class="animation-layer"
+></div>
+
+
+
+<!-- AVATAR -->
+
+<div
+    id="avatarOverlay"
+    class="overlay hidden"
+>
+
+    <div class="modal">
+
+        <h2>
+            Choose Player Picture
+        </h2>
+
+        <p class="modal-subtitle">
+            Pick an emoji or upload a photo.
+        </p>
+
+        <div
+            id="avatarChoices"
+            class="avatar-picker-grid"
+        ></div>
+
+        <input
+            id="avatarFileInput"
+            type="file"
+            accept="image/*"
+            class="hidden"
+        >
+
+        <button
+            id="uploadPhotoButton"
+            class="secondary-button full-width"
+            type="button"
+        >
+            📷 Upload Photo
+        </button>
+
+        <button
+            id="cancelAvatarButton"
+            class="cancel-button"
+            type="button"
+        >
+            Cancel
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<!-- WIN -->
+
+<div
+    id="winOverlay"
+    class="overlay hidden"
+>
+
+    <div class="modal">
+
+        <div
+            id="winnerAvatar"
+            class="modal-avatar"
+        >
+            😎
+        </div>
+
+        <h2 id="winnerTitle">
+            Player Won
+        </h2>
+
+        <p class="modal-subtitle">
+            How did they win?
+        </p>
+
+        <button
+            class="result-button"
+            data-result="Tongits"
+            type="button"
+        >
+            TONGITS
+        </button>
+
+        <button
+            class="result-button"
+            data-result="Draw"
+            type="button"
+        >
+            DRAW
+        </button>
+
+        <button
+            class="result-button"
+            data-result="Fight"
+            type="button"
+        >
+            FIGHT
+        </button>
+
+        <button
+            id="cancelWinButton"
+            class="cancel-button"
+            type="button"
+        >
+            Cancel
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<!-- CONFIRM ROUND -->
+
+<div
+    id="confirmRoundOverlay"
+    class="overlay hidden"
+>
+
+    <div class="modal">
+
+        <h2 id="confirmRoundTitle">
+            Confirm Round
+        </h2>
+
+        <div
+            id="roundSummary"
+            class="round-summary"
+        ></div>
+
+        <button
+            id="confirmRoundButton"
+            class="primary-button"
+            type="button"
+        >
+            CONFIRM ROUND
+        </button>
+
+        <button
+            id="cancelRoundButton"
+            class="cancel-button"
+            type="button"
+        >
+            Cancel
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<!-- POT DECISION -->
+
+<div
+    id="potWinOverlay"
+    class="overlay hidden"
+>
+
+    <div class="modal pot-win-modal">
+
+        <div class="pot-fire">
+            🔥
+        </div>
+
+        <h2 id="potWinTitle">
+            3 Consecutive Wins!
+        </h2>
+
+        <div
+            id="potWinAvatar"
+            class="pot-win-avatar"
+        >
+            😎
+        </div>
+
+        <div
+            id="potWinPlayerName"
+            class="pot-win-name"
+        >
+            Player
+        </div>
+
+        <p class="pot-question">
+            Did this player win the pot?
+        </p>
+
+        <div class="pot-amount-box">
+
+            <div class="label">
+                Current Pot
+            </div>
+
+            <div
+                id="potClaimAmount"
+                class="pot-claim-amount"
+            >
+                S$0
+            </div>
+
+        </div>
+
+        <button
+            id="takePotButton"
+            class="primary-button"
+            type="button"
+        >
+            YES — TAKE POT
+        </button>
+
+        <button
+            id="keepPotButton"
+            class="secondary-button full-width pot-no-button"
+            type="button"
+        >
+            NO — KEEP POT
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================
+     GAME FINISHED
+========================== -->
+
+<div
+    id="gameFinishedOverlay"
+    class="overlay hidden"
+>
+
+    <div class="modal game-finished-modal">
+
+        <div class="game-finished-fire">
+            🔥🏆
+        </div>
+
+        <div
+            id="gameFinishedAvatar"
+            class="pot-win-avatar"
+        >
+            😎
+        </div>
+
+        <h2 id="gameFinishedTitle">
+            Player Won the Pot!
+        </h2>
+
+        <div class="finished-pot-box">
+
+            <div class="label">
+                POT WON
+            </div>
+
+            <div
+                id="gameFinishedPot"
+                class="game-finished-pot"
+            >
+                S$0
+            </div>
+
+        </div>
+
+        <p class="modal-subtitle">
+            The game is finished. Final balances
+            and history have been saved.
+        </p>
+
+        <button
+            id="finishedStartNewGameButton"
+            class="primary-button"
+            type="button"
+        >
+            🔄 START NEW GAME
+        </button>
+
+        <button
+            id="viewFinalResultsButton"
+            class="secondary-button full-width"
+            type="button"
+        >
+            👀 VIEW FINAL RESULTS
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================
+     START NEXT GAME
+========================== -->
+
+<div
+    id="finishedNewGameOverlay"
+    class="overlay hidden"
+>
+
+    <div class="modal">
+
+        <h2>
+            Start New Game
+        </h2>
+
+        <p class="modal-subtitle">
+            How would you like to start?
+        </p>
+
+
+        <button
+            id="finishedKeepMoneyButton"
+            class="result-button"
+            type="button"
+        >
+            SAME PLAYERS — KEEP MONEY
+        </button>
+
+        <p class="button-description">
+            Use everyone's final net balance
+            as the starting money for the new game.
+        </p>
+
+
+        <button
+            id="finishedResetMoneyButton"
+            class="result-button"
+            type="button"
+        >
+            SAME PLAYERS — RESET MONEY
+        </button>
+
+        <p class="button-description">
+            Return everyone to their original
+            starting money.
+        </p>
+
+
+        <button
+            id="finishedEditPlayersButton"
+            class="result-button"
+            type="button"
+        >
+            👥 EDIT PLAYERS / NEW GAME
+        </button>
+
+        <p class="button-description">
+            Change players, photos, starting
+            money or game setup.
+        </p>
+
+
+        <button
+            id="cancelFinishedNewGameButton"
+            class="cancel-button"
+            type="button"
+        >
+            Cancel
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<!-- FIGHT -->
+
+<div
+    id="fightOverlay"
+    class="overlay hidden"
+>
+
+    <div class="modal">
+
+        <h2>Fight</h2>
+
+        <p class="modal-subtitle">
+            Select who fought and enter their payment.
+        </p>
+
+        <div id="fightPlayers"></div>
+
+        <p class="fight-note">
+            Anyone who did not fight pays
+            the normal Draw amount.
+        </p>
+
+        <button
+            id="confirmFightButton"
+            class="primary-button"
+            type="button"
+        >
+            CONTINUE
+        </button>
+
+        <button
+            id="cancelFightButton"
+            class="cancel-button"
+            type="button"
+        >
+            Cancel
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<!-- RULES -->
+
+<div
+    id="rulesOverlay"
+    class="overlay hidden"
+>
+
+    <div class="modal">
+
+        <div class="modal-top-bar">
+
+            <h2>
+                Current Rules
+            </h2>
+
+            <button
+                id="topCloseRulesButton"
+                class="modal-close-button"
+                type="button"
+            >
+                ✕
+            </button>
+
+        </div>
+
+        <div
+            id="rulesList"
+            class="rules-list"
+        ></div>
+
+        <button
+            id="closeRulesButton"
+            class="secondary-button full-width"
+            type="button"
+        >
+            Close
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<!-- SETTINGS -->
+
+<div
+    id="settingsOverlay"
+    class="overlay hidden"
+>
+
+    <div class="modal">
+
+        <div class="modal-top-bar">
+
+            <h2>Settings</h2>
+
+            <button
+                id="topCloseSettingsButton"
+                class="modal-close-button"
+                type="button"
+            >
+                ✕
+            </button>
+
+        </div>
+
+
+        <p class="modal-subtitle">
+            Game rules and appearance.
+        </p>
+
+
+        <div class="settings-section-title">
+            APPEARANCE
+        </div>
+
+        <div class="theme-selector">
+
+            <button
+                id="darkThemeButton"
+                class="theme-button"
+                type="button"
+            >
+                🌙 Dark
+            </button>
+
+            <button
+                id="lightThemeButton"
+                class="theme-button"
+                type="button"
+            >
+                ☀️ Light
+            </button>
+
+        </div>
+
+
+        <div class="settings-divider"></div>
+
+        <div class="settings-section-title">
+            GAME RULES
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                Draw Payment / Loser
+            </label>
+
+            <input
+                id="settingDrawPayment"
+                class="select-on-focus"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                step="0.01"
+            >
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                Tongits Payment / Loser
+            </label>
+
+            <input
+                id="settingTongitsPayment"
+                class="select-on-focus"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                step="0.01"
+            >
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                Initial Pot / Player
+            </label>
+
+            <input
+                id="settingInitialPot"
+                class="select-on-focus"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                step="0.01"
+            >
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                Round Pot / Player
+            </label>
+
+            <input
+                id="settingRoundPot"
+                class="select-on-focus"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                step="0.01"
+            >
+
+        </div>
+
+
+        <div class="field">
+
+            <label>
+                Consecutive Wins for Pot
+            </label>
+
+            <input
+                id="settingPotStreak"
+                class="select-on-focus"
+                type="number"
+                inputmode="numeric"
+                min="1"
+                step="1"
+            >
+
+        </div>
+
+
+        <button
+            id="saveSettingsButton"
+            class="primary-button"
+            type="button"
+        >
+            SAVE SETTINGS
+        </button>
+
+
+        <div class="settings-divider"></div>
+
+
+        <button
+            id="editPlayersButton"
+            class="management-button"
+            type="button"
+        >
+            👥 New Game / Edit Players
+        </button>
+
+        <button
+            id="restartGameButton"
+            class="management-button"
+            type="button"
+        >
+            🔄 Restart Same Players
+        </button>
+
+        <button
+            id="closeSettingsButton"
+            class="cancel-button"
+            type="button"
+        >
+            Close
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<!-- RESTART -->
+
+<div
+    id="restartOverlay"
+    class="overlay hidden"
+>
+
+    <div class="modal">
+
+        <h2>
+            Restart Same Players
+        </h2>
+
+        <p class="modal-subtitle">
+            Player names and pictures
+            will stay the same.
+        </p>
+
+        <button
+            id="restartKeepMoneyButton"
+            class="result-button"
+            type="button"
+        >
+            Keep Current Money
+        </button>
+
+        <p class="button-description">
+            Current balances become the new
+            starting money, then the Initial
+            Pot is collected.
+        </p>
+
+        <button
+            id="restartResetMoneyButton"
+            class="result-button"
+            type="button"
+        >
+            Reset Money
+        </button>
+
+        <p class="button-description">
+            Return players to their original
+            starting money, then collect the
+            Initial Pot.
+        </p>
+
+        <button
+            id="cancelRestartButton"
+            class="cancel-button"
+            type="button"
+        >
+            Cancel
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<!-- NEW GAME CONFIRM -->
+
+<div
+    id="newGameConfirmOverlay"
+    class="overlay hidden"
+>
+
+    <div class="modal">
+
+        <h2>
+            Start New Game?
+        </h2>
+
+        <p class="confirmation-warning">
+            This will replace the current game
+            and clear its round history.
+        </p>
+
+        <button
+            id="confirmNewGameButton"
+            class="primary-button"
+            type="button"
+        >
+            START NEW GAME
+        </button>
+
+        <button
+            id="cancelNewGameButton"
+            class="cancel-button"
+            type="button"
+        >
+            Cancel
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<!-- HISTORY -->
+
+<div
+    id="historyOverlay"
+    class="overlay hidden"
+>
+
+    <div class="modal history-modal">
+
+        <div class="modal-top-bar">
+
+            <h2>History</h2>
+
+            <button
+                id="topCloseHistoryButton"
+                class="modal-close-button"
+                type="button"
+            >
+                ✕
+            </button>
+
+        </div>
+
+        <div
+            id="historyList"
+            class="history-list"
+        ></div>
+
+        <button
+            id="closeHistoryButton"
+            class="secondary-button full-width"
+            type="button"
+        >
+            Close
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<!-- MESSAGE -->
+
+<div
+    id="messageOverlay"
+    class="overlay hidden"
+>
+
+    <div class="modal">
+
+        <h2 id="messageTitle">
+            Done
+        </h2>
+
+        <div
+            id="messageText"
+            class="message-text"
+        ></div>
+
+        <button
+            id="closeMessageButton"
+            class="primary-button"
+            type="button"
+        >
+            OK
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<script src="js/storage.js"></script>
+<script src="js/game.js"></script>
+<script src="js/animations.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
