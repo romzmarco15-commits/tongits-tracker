@@ -1213,3 +1213,113 @@ if (loadGame()) {
 
     showFreshSetup();
 }
+/* =========================================
+   EASTER EGGS
+========================================= */
+let potEggTaps = [];
+let predictionTimer = null;
+let predictionRunning = false;
+let lastMilestoneCelebrated = 0;
+
+function eggToast(message, duration = 2200) {
+    const toast = document.getElementById("easterToast");
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.remove("hidden");
+    clearTimeout(eggToast._timer);
+    eggToast._timer = setTimeout(() => toast.classList.add("hidden"), duration);
+}
+
+function openPotPrediction() {
+    if (!game || !game.players || !game.players.length) return;
+    document.getElementById("predictionRoulette").textContent = "Tap PREDICT";
+    document.getElementById("predictionResult").textContent = "";
+    document.getElementById("runPredictionButton").disabled = false;
+    openOverlay("predictionOverlay");
+}
+
+document.getElementById("potArea").addEventListener("click", function () {
+    if (!game || game.finished) return;
+    const now = Date.now();
+    potEggTaps = potEggTaps.filter(t => now - t <= 4500);
+    potEggTaps.push(now);
+    if (potEggTaps.length >= 10) {
+        potEggTaps = [];
+        openPotPrediction();
+    }
+});
+
+document.getElementById("closePredictionButton").addEventListener("click", () => {
+    if (!predictionRunning) closeOverlay("predictionOverlay");
+});
+
+document.getElementById("runPredictionButton").addEventListener("click", function () {
+    if (!game || predictionRunning) return;
+    predictionRunning = true;
+    this.disabled = true;
+    const roulette = document.getElementById("predictionRoulette");
+    const result = document.getElementById("predictionResult");
+    roulette.classList.add("spinning");
+    result.textContent = "Consulting extremely reliable sources...";
+    let ticks = 0;
+    clearInterval(predictionTimer);
+    predictionTimer = setInterval(() => {
+        const p = game.players[ticks % game.players.length];
+        roulette.textContent = `${p.name} ${["🔮","🪙","✨"][ticks % 3]}`;
+        ticks++;
+    }, 90);
+    setTimeout(() => {
+        clearInterval(predictionTimer);
+        const winnerIndex = Math.floor(Math.random() * game.players.length);
+        const player = game.players[winnerIndex];
+        roulette.classList.remove("spinning");
+        roulette.textContent = `🔮 ${player.name}`;
+        result.textContent = `Prediction: ${player.name} will win the pot!`;
+        game.easterPrediction = { playerIndex: winnerIndex, playerName: player.name };
+        saveGame();
+        predictionRunning = false;
+        document.getElementById("runPredictionButton").disabled = false;
+    }, 2400);
+});
+
+// Long-press a player card/avatar: Main Character Energy.
+let eggLongPressTimer = null;
+document.addEventListener("pointerdown", function (e) {
+    const avatar = e.target.closest(".player-avatar, .avatar");
+    if (!avatar) return;
+    eggLongPressTimer = setTimeout(() => {
+        avatar.classList.add("easter-spin");
+        eggToast("Main Character Energy ✨");
+        setTimeout(() => avatar.classList.remove("easter-spin"), 1000);
+    }, 3000);
+});
+["pointerup","pointercancel","pointermove"].forEach(type => document.addEventListener(type, () => clearTimeout(eggLongPressTimer)));
+
+// Seven quick taps on a visible streak indicator.
+let streakEggTaps = [];
+document.addEventListener("click", function (e) {
+    const streak = e.target.closest(".streak-badge, .streak, [class*='streak']");
+    if (!streak || streak.closest("#settingsOverlay")) return;
+    const now = Date.now();
+    streakEggTaps = streakEggTaps.filter(t => now - t <= 3500);
+    streakEggTaps.push(now);
+    if (streakEggTaps.length >= 7) {
+        streakEggTaps = [];
+        streak.classList.add("easter-fire");
+        eggToast("🔥 ON FIRE! 🔥");
+        setTimeout(() => streak.classList.remove("easter-fire"), 2400);
+    }
+});
+
+function runPostRenderEasterEggs() {
+    if (!game) return;
+    const pot = Number(game.pot || 0);
+    const milestone = pot >= 100 ? 100 : pot >= 50 ? 50 : 0;
+    if (milestone && milestone > lastMilestoneCelebrated) {
+        lastMilestoneCelebrated = milestone;
+        const area = document.getElementById("potArea");
+        area.classList.add("easter-confetti");
+        eggToast(`🪙 POT JACKPOT — ${money(milestone)}!`);
+        setTimeout(() => area.classList.remove("easter-confetti"), 1300);
+    }
+}

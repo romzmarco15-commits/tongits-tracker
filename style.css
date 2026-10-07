@@ -2354,3 +2354,22 @@ body[data-theme="light"] .modal { background: rgba(249,249,249,.97); }
         grid-template-columns: 1fr;
     }
 }
+
+/* Easter eggs */
+.pot-area { cursor: pointer; user-select: none; -webkit-user-select: none; }
+.prediction-modal { text-align:center; overflow:hidden; }
+.prediction-orb { font-size:3.2rem; animation: eggFloat 1.8s ease-in-out infinite; }
+.prediction-subtitle { opacity:.68; margin-top:-4px; }
+.prediction-roulette { margin:20px 0 12px; min-height:76px; display:flex; align-items:center; justify-content:center; border-radius:22px; font-size:1.35rem; font-weight:800; background:rgba(127,127,127,.12); padding:14px; }
+.prediction-roulette.spinning { animation: eggPulse .16s ease-in-out infinite alternate; }
+.prediction-result { min-height:48px; font-size:1.15rem; font-weight:800; margin:8px 0 16px; }
+.easter-toast { position:fixed; z-index:9999; left:50%; bottom:calc(28px + env(safe-area-inset-bottom)); transform:translateX(-50%); max-width:min(90vw,430px); padding:12px 18px; border-radius:999px; background:rgba(28,28,30,.94); color:white; font-weight:800; text-align:center; box-shadow:0 10px 35px rgba(0,0,0,.3); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); }
+.easter-toast.hidden { display:none; }
+.easter-fire { animation: eggFire .45s ease-in-out 5 alternate; }
+.easter-spin { animation: eggSpin .9s cubic-bezier(.2,.8,.2,1); }
+.easter-confetti::after { content:"🪙 ✨ 🪙 ✨ 🪙"; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:1.4rem; pointer-events:none; animation:eggCoins 1.2s ease-out forwards; }
+@keyframes eggFloat { 50% { transform:translateY(-7px) rotate(5deg); } }
+@keyframes eggPulse { to { transform:scale(1.025); } }
+@keyframes eggFire { to { transform:scale(1.08); filter:drop-shadow(0 0 12px orange); } }
+@keyframes eggSpin { to { transform:rotate(360deg) scale(1.08); } }
+@keyframes eggCoins { 0%{opacity:0;transform:translateY(20px) scale(.7)} 35%{opacity:1} 100%{opacity:0;transform:translateY(-65px) scale(1.25)} }

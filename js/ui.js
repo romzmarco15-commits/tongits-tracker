@@ -1130,6 +1130,10 @@ function renderGame() {
     ).disabled =
         !game.undoStack ||
         game.undoStack.length === 0;
+
+    if (typeof runPostRenderEasterEggs === "function") {
+        setTimeout(runPostRenderEasterEggs, 0);
+    }
 }
 
 
@@ -1368,6 +1372,17 @@ function showGameFinished(result) {
     openOverlay(
         "gameFinishedOverlay"
     );
+
+    if (game.easterPrediction) {
+        const predicted = game.easterPrediction.playerIndex;
+        setTimeout(() => {
+            if (predicted === result.winnerIndex) {
+                if (typeof eggToast === "function") eggToast("🔮 THE PROPHECY WAS FULFILLED!", 3500);
+            } else {
+                if (typeof eggToast === "function") eggToast("🔮 The prophecy was wrong. We never speak of this again.", 3800);
+            }
+        }, 450);
+    }
 }
 
 
