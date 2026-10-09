@@ -279,6 +279,7 @@
         >
             START NEW GAME
         </button>
+        <button id="viewSettlementButton" class="secondary-button" type="button">💸 VIEW FINAL RESULTS</button>
 
     </div>
 
@@ -525,26 +526,9 @@
         </h2>
 
 
-        <button
-            id="bonusToggleButton"
-            class="bonus-toggle-button"
-            type="button"
-            aria-pressed="false"
-        >
-            <span>🎁 BONUS</span>
-            <span class="bonus-toggle-hint">Tap to add</span>
-        </button>
+        <div class="quick-pay-section-title">🎁 BONUSES — SELECT ANY THAT APPLY</div>
 
-        <div id="bonusDetails" class="bonus-panel hidden">
-            <div class="field">
-                <label for="bonusReason">Reason</label>
-                <input id="bonusReason" type="text" autocomplete="off">
-            </div>
-            <div class="field">
-                <label for="bonusAmount">Amount / Opponent</label>
-                <input id="bonusAmount" class="select-on-focus" type="number" inputmode="decimal" min="0" step="1">
-            </div>
-        </div>
+        <div id="bonusTypesRound" class="bonus-types-round"></div>
 
 
         <div
@@ -793,12 +777,15 @@
 
         </div>
 
+        <div id="finalSettlementContent" class="settlement-panel"></div>
+        <details id="finalSettlementDetails" class="final-settlement-details">
+          <summary>📊 View Settlement Details</summary>
+          <div id="finalSettlementDetailsContent"></div>
+        </details>
         <p class="modal-subtitle">
             The game is finished.
             Final balances and history have been saved.
         </p>
-
-        <div id="gameFinishedSettlement" class="settlement-breakdown hidden"></div>
 
         <button
             id="finishedStartNewGameButton"
@@ -819,6 +806,7 @@
     </div>
 
 </div>
+
 
 
 
@@ -908,7 +896,7 @@
         <h2>Fight</h2>
 
         <p class="modal-subtitle">
-            Select who fought and enter their payment.
+            Select who fought, enter their payment, and apply any bonuses below.
         </p>
 
         <div id="fightPlayers"></div>
@@ -918,12 +906,15 @@
             the normal Draw amount.
         </p>
 
+        <div class="quick-pay-section-title">🎁 BONUSES — SELECT ANY THAT APPLY</div>
+        <div id="fightBonusTypesRound" class="bonus-types-round"></div>
+
         <button
             id="confirmFightButton"
             class="primary-button"
             type="button"
         >
-            CONTINUE
+            CONFIRM FIGHT ROUND
         </button>
 
         <button
@@ -1087,16 +1078,7 @@
         </div>
 
 
-        <div class="field">
-            <label>Default Bonus Reason</label>
-            <input id="settingBonusReason" type="text" autocomplete="off">
-        </div>
-
-        <div class="field">
-            <label>Default Bonus Amount / Opponent</label>
-            <input id="settingBonusAmount" class="select-on-focus" type="number" inputmode="decimal" min="0" step="1">
-        </div>
-
+        <div class="field"><label>🎁 Bonus Types (amount per affected opponent)</label><div id="bonusTypesSettings"></div><button type="button" id="addBonusTypeButton" class="secondary-button">＋ Add Bonus Type</button></div>
 
         <div class="field">
 
@@ -1182,6 +1164,11 @@
 
         <div class="settings-divider"></div>
 
+        <div class="settings-section-title">GAMEPLAY & DISPLAY</div>
+
+        <label class="settings-label" for="settingPaymentBreakdown">💸 Payment Breakdown</label>
+        <label class="ios-list-row"><span>Show expandable breakdown on each player card</span><input id="settingPaymentBreakdown" type="checkbox" checked></label>
+        <div class="settings-divider"></div>
         <div class="settings-section-title">SOUND</div>
         <div class="sound-settings-grid">
             <button id="soundEffectsToggle" class="sound-setting-button" type="button" aria-pressed="true">🔊 Sound Effects  ON</button>
@@ -1195,6 +1182,7 @@
         <div class="settings-section-title">
             DATA
         </div>
+        <p id="storageStatus" class="sound-setting-help">Storage: checking…</p>
 
         <button
             id="clearAllDataButton"
@@ -1452,9 +1440,7 @@
     <p class="prediction-subtitle">The Tongits gods have spoken...</p>
     <div id="predictionRoulette" class="prediction-roulette">Tap PREDICT</div>
     <div id="predictionResult" class="prediction-result"></div>
-    <button id="runPredictionButton" class="prediction-tap-hint" type="button" aria-label="Tap anywhere to predict">
-      ✨ TAP ANYWHERE TO PREDICT ✨
-    </button>
+    <button id="runPredictionButton" class="primary-button full-width" type="button">PREDICT</button>
   </div>
 </div>
 <div id="easterToast" class="easter-toast hidden"></div>

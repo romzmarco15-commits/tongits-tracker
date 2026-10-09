@@ -20,6 +20,7 @@ let quickPayReceiverIndex = null;
 let quickPaySelectedPayers = [];
 let fightSelectedPlayers = [];
 let fightAmounts = {};
+let sunogSelectedPlayers = [];
 
 
 /* =========================================
@@ -966,12 +967,15 @@ function renderFinishedBanner() {
         money(game.finishedPot);
 
     banner.classList.remove("hidden");
+    renderFinalSettlement();
 }
 
 
 /* =========================================
    GAME
 ========================================= */
+
+const expandedPlayerDetails = new Set();
 
 function renderGame() {
     if (!game) return;
@@ -1039,11 +1043,16 @@ function renderGame() {
                     `
                     : "";
 
-            const debtHtml =
-                playerDebtHtml(player);
+            const outstandingTotal = roundMoney((player.debts || []).reduce((sum, debt) => sum + Math.max(0, Number(debt.amount) || 0), 0));
+            const debtHtml = outstandingTotal > 0
+                ? `<div class="player-pending player-pending-compact" aria-label="Outstanding debt ${money(outstandingTotal)}"><span>Pending</span><strong>${money(outstandingTotal)}</strong></div>`
+                : "";
+            const showDetails = localStorage.getItem("tongitsShowBreakdown") !== "false";
+            const detailsExpanded = expandedPlayerDetails.has(index);
 
             card.innerHTML = `
                 <div class="player-top">
+                    ${showDetails ? `<button type="button" class="player-details-toggle" data-details-player="${index}" aria-expanded="${detailsExpanded}" aria-controls="player-details-${index}" aria-label="${detailsExpanded ? "Hide" : "Show"} payment details for ${escapeHtml(player.name)}" title="Payment details">▤ <span class="details-chevron">⌄</span></button>` : ""}
 
                     <div class="player-avatar">
                         ${avatarContent(
@@ -1079,6 +1088,7 @@ function renderGame() {
                 </div>
 
                 ${debtHtml}
+                ${showDetails ? `<div id="player-details-${index}" class="player-details-collapse ${detailsExpanded ? "expanded" : ""}"><div class="player-details-inner">${playerPaymentDetailsHtml(index)}</div></div>` : ""}
 
                 ${
                     game.finished
@@ -1181,27 +1191,17 @@ function showRoundConfirmation() {
     ).textContent =
         `${winner.name} — ${pendingRound.type}`;
 
-    const bonusReason = pendingRound.bonusReason || game.rules.bonusReason || "Bonus";
-    const bonusAmount = pendingRound.bonusEnabled
-        ? (pendingRound.bonusAmount ?? game.rules.bonusAmount)
-        : game.rules.bonusAmount;
-
-    document.getElementById("bonusReason").value = bonusReason;
-    document.getElementById("bonusAmount").value = bonusAmount;
-
-    const bonusDetails = document.getElementById("bonusDetails");
-    const bonusButton = document.getElementById("bonusToggleButton");
-    bonusDetails.classList.toggle("hidden", !pendingRound.bonusEnabled);
-    bonusButton.classList.toggle("selected", Boolean(pendingRound.bonusEnabled));
-    bonusButton.setAttribute("aria-pressed", String(Boolean(pendingRound.bonusEnabled)));
-    bonusButton.querySelector(".bonus-toggle-hint").textContent =
-        pendingRound.bonusEnabled ? "Selected" : "Tap to add";
+    selectedRoundBonuses = (pendingRound.bonuses || []).map(b=>({...b,targets:[...b.targets]}));
+    updateRoundBonusUI();
 
     renderRoundSummary();
 
     openOverlay(
         "confirmRoundOverlay"
     );
+    // The same multi-bonus selector is available after Fight, Draw and Tongits.
+    const roundModal = document.querySelector("#confirmRoundOverlay .modal");
+    if (roundModal) roundModal.scrollTop = 0;
 }
 
 function renderRoundSummary() {
@@ -1261,7 +1261,7 @@ function renderRoundSummary() {
                         ${money(
                             payment.bonusAmount
                         )}
-                        ${escapeHtml(pendingRound.bonusReason || "Bonus")}
+                        ${escapeHtml((payment.appliedBonuses || []).map(b=>b.name).join(" + ") || pendingRound.bonusReason || "Bonus")}
                     </div>
                 `;
             }
@@ -1269,15 +1269,7 @@ function renderRoundSummary() {
     );
 
     if (pendingRound.bonusEnabled) {
-        html += `
-            <div class="bonus-summary">
-                🎁 ${escapeHtml(pendingRound.bonusReason || "Bonus").toUpperCase()}:
-                +${money(
-                    pendingRound.bonusAmount
-                )}
-                from each opponent
-            </div>
-        `;
+        html += `<div class="bonus-summary">🎁 ${pendingRound.bonuses.map(b=>`${escapeHtml(b.name)}: ${money(b.amount)} / affected player`).join(' · ')}</div>`;
     }
 
     html += `
@@ -1369,28 +1361,7 @@ function showGameFinished(result) {
     ).textContent =
         money(result.potWon);
 
-    const settlementBox = document.getElementById("gameFinishedSettlement");
-    if (settlementBox) {
-        const details = Array.isArray(result.settlementDetails)
-            ? result.settlementDetails
-            : [];
-
-        if (details.length) {
-            settlementBox.innerHTML = `
-                <div class="settlement-title">SETTLEMENT DETAILS</div>
-                ${details.map(item => `
-                    <div class="settlement-row ${escapeAttribute(item.type || "")}">
-                        ${escapeHtml(item.text)}
-                    </div>
-                `).join("")}
-            `;
-            settlementBox.classList.remove("hidden");
-        } else {
-            settlementBox.innerHTML = "";
-            settlementBox.classList.add("hidden");
-        }
-    }
-
+    renderFinalSettlement();
     openOverlay(
         "gameFinishedOverlay"
     );
@@ -1417,6 +1388,7 @@ function showGameFinished(result) {
 function buildFight() {
     fightSelectedPlayers = [];
     fightAmounts = {};
+    sunogSelectedPlayers = [];
     renderFightPlayers();
 }
 
@@ -1686,9 +1658,10 @@ function openSettings() {
     ).value =
         game.rules.tongitsPayment;
 
-    document.getElementById("settingBonusReason").value = game.rules.bonusReason || "Bonus";
+    editedBonusTypes = JSON.parse(JSON.stringify(game.rules.bonusTypes || []));
+    renderBonusTypeSettings();
 
-    document.getElementById("settingBonusAmount").value = game.rules.bonusAmount;
+
 
     document.getElementById(
         "settingInitialPot"
@@ -1705,11 +1678,19 @@ function openSettings() {
     ).value =
         game.rules.potWinStreak;
 
+    const sunog = document.getElementById("settingSunogExtra");
+
+    const breakdown = document.getElementById("settingPaymentBreakdown");
+    if (breakdown) { breakdown.checked = localStorage.getItem("tongitsShowBreakdown") !== "false"; }
     updateThemeButtons();
     if (typeof updateSoundSettingButtons === "function") updateSoundSettingButtons();
 
     openOverlay("settingsOverlay");
-
+    const status=document.getElementById("storageStatus");
+    if(status) {
+        status.textContent=lastSaveOK ? "Last save: successful" : "⚠️ Last save failed";
+        if(navigator.storage?.estimate) navigator.storage.estimate().then(e=>{status.textContent += ` · Device site storage: ${(e.usage/1048576).toFixed(1)} MB used`;}).catch(()=>{});
+    }
     activateSelectOnFocus();
 }
 
@@ -1909,7 +1890,7 @@ function openHistory() {
             if (entry.bonusEnabled) {
                 bonusText = `
                     <div class="history-bonus">
-                        🎁 ${escapeHtml(entry.bonusReason || "Bonus")} +${money(entry.bonusAmount)} per opponent
+                        🎁 ${Array.isArray(entry.bonuses) && entry.bonuses.length ? entry.bonuses.map(b=>`${escapeHtml(b.name)} +${money(b.amount)} (${b.targets.length} affected)`).join(" · ") : `${escapeHtml(entry.bonusReason || "Bonus")} +${money(entry.bonusAmount)} per opponent`}
                     </div>
                 `;
             }
@@ -2046,4 +2027,87 @@ function openHistory() {
         });
 
     openOverlay("historyOverlay");
+}
+/* Detailed game accounting (undone history is excluded). */
+function paymentSummaryFor(index) {
+    const names = game.players.map(p=>p.name);
+    const paid = new Map(), received = new Map();
+    const add=(map,name,amount)=>map.set(name,(map.get(name)||0)+Number(amount||0));
+    // Initial pot is paid at game creation, not represented by a round entry.
+    add(paid,"Pot",Math.min(Number(game.initialPot||0),Number(game.players[index].startingBalance||0)));
+    for(const entry of game.history || []) {
+        if(entry.undone) continue;
+        for(const p of entry.payments || []) {
+            const from = p.fromIndex ?? names.indexOf(p.from);
+            const to = p.toIndex ?? (entry.eventType === "quickPay" ? (entry.receiverIndex ?? entry.toIndex ?? names.indexOf(entry.receiver || entry.to)) : names.indexOf(entry.winner));
+            const amount = Number(p.paid ?? p.amount ?? 0);
+            if(from === index) add(paid, names[to] || entry.winner || "Player", amount);
+            if(to === index) add(received, names[from] || p.from || "Player", amount);
+        }
+        for(const c of entry.contributions || []) {
+            const who = c.fromIndex ?? c.playerIndex ?? names.indexOf(c.from);
+            if(who === index) add(paid,"Pot",Number(c.paid ?? c.amount ?? 0));
+        }
+        if(entry.gameFinished && Number(entry.potWon)>0 && names.indexOf(entry.winner)===index) add(received,"Pot",Number(entry.potWon));
+    }
+    return {paid,received};
+}
+function playerPaymentDetailsHtml(index) {
+    const p = game.players[index];
+    const summary = paymentSummaryFor(index);
+    const total = map => roundMoney(Array.from(map.values()).reduce((a,b)=>a+b,0));
+    const rows = map => Array.from(map.entries()).filter(([,v])=>v>0).map(([name,amount])=>`<div class="settlement-row"><span>${escapeHtml(name)}</span><strong>${money(amount)}</strong></div>`).join("") || '<p class="ios-row-note">None yet</p>';
+    const debtRows = (p.debts||[]).filter(d=>Number(d.amount)>0).map(d=>`<div class="settlement-row"><span>${d.type==="pot"?"Pot":d.type==="player"?escapeHtml(game.players[d.playerIndex]?.name||"Player"):"Other"}</span><strong>${money(d.amount)}</strong></div>`).join("") || '<p class="ios-row-note">None</p>';
+    return `<div class="player-details-section"><strong>Paid out · ${money(total(summary.paid))}</strong>${rows(summary.paid)}</div><div class="player-details-section"><strong>Received · ${money(total(summary.received))}</strong>${rows(summary.received)}</div><div class="player-details-section"><strong>Still owed</strong>${debtRows}</div><p class="ios-row-note">Starting ${money(p.startingBalance)} · Current net ${money(p.balance)}. Recorded actual payments only; older history may be incomplete.</p>`;
+}
+function computeFinalSettlement() {
+    const rows=game.players.map((p,i)=>({index:i,name:p.name,start:Number(p.startingBalance||0),end:Number(p.balance||0),net:roundMoney(Number(p.balance||0)-Number(p.startingBalance||0))}));
+    const creditors=rows.filter(p=>p.net>0.005).map(p=>({...p,left:p.net}));
+    const debtors=rows.filter(p=>p.net< -0.005).map(p=>({...p,left:-p.net}));
+    const transfers=[];
+    let a=0,b=0;
+    while(a<debtors.length && b<creditors.length) {
+        const amount=roundMoney(Math.min(debtors[a].left,creditors[b].left));
+        if(amount>0) transfers.push({from:debtors[a].name,to:creditors[b].name,amount});
+        debtors[a].left=roundMoney(debtors[a].left-amount);
+        creditors[b].left=roundMoney(creditors[b].left-amount);
+        if(debtors[a].left<=0.005) a++;
+        if(creditors[b].left<=0.005) b++;
+    }
+    return {rows,transfers,balanced:Math.abs(rows.reduce((n,p)=>n+p.net,0))<0.01};
+}
+function renderFinalSettlement() {
+    const el = document.getElementById("finalSettlementContent");
+    const detailsEl = document.getElementById("finalSettlementDetailsContent");
+    if (!el || !game?.finished) return;
+    const data = computeFinalSettlement();
+    const winner = game.players[game.finishedBy];
+    el.innerHTML = `<h3>🏆 Final Balances</h3>` +
+        data.rows.map(p => `<div class="settlement-row"><span>${escapeHtml(p.name)}<small>Starting ${money(p.start)} · Final ${money(p.end)}</small></span><strong class="${p.net < 0 ? "settlement-loss" : "settlement-profit"}">${p.net > 0 ? "+" : ""}${money(p.net)}</strong></div>`).join("") +
+        `<h3>💸 Who Pays Whom?</h3>` +
+        (data.transfers.map(t => `<div class="settlement-row"><span>${escapeHtml(t.from)} → ${escapeHtml(t.to)}</span><strong>${money(t.amount)}</strong></div>`).join("") || "<p>No net transfers required.</p>") +
+        (!data.balanced ? '<p class="settlement-loss">⚠️ Net balances do not reconcile. Check legacy or outstanding debts before paying.</p>' : '') +
+        `<p class="ios-row-note">These are net end-of-game transfers based on the recorded balances, assuming real money has not already been settled separately.</p>`;
+    if (detailsEl) {
+        detailsEl.innerHTML = data.rows.map(row => {
+            const player = game.players[row.index];
+            const summary = paymentSummaryFor(row.index);
+            const sum = map => roundMoney(Array.from(map.values()).reduce((a,b)=>a+b,0));
+            const paidPot = roundMoney(summary.paid.get("Pot") || 0);
+            const receivedPot = roundMoney(summary.received.get("Pot") || 0);
+            const pendingPot = roundMoney((player.debts || []).filter(d => d.type === "pot").reduce((a,d)=>a+Number(d.amount||0),0));
+            const pendingOthers = roundMoney((player.debts || []).filter(d => d.type !== "pot").reduce((a,d)=>a+Number(d.amount||0),0));
+            return `<div class="settlement-player-detail"><h4>${escapeHtml(row.name)}</h4>` +
+                `<div class="settlement-row"><span>Starting money</span><strong>${money(row.start)}</strong></div>` +
+                `<div class="settlement-row"><span>Paid into pot (recorded)</span><strong>${money(paidPot)}</strong></div>` +
+                `<div class="settlement-row"><span>Paid to other players (recorded)</span><strong>${money(roundMoney(sum(summary.paid)-paidPot))}</strong></div>` +
+                `<div class="settlement-row"><span>Received from players (recorded)</span><strong>${money(roundMoney(sum(summary.received)-receivedPot))}</strong></div>` +
+                `<div class="settlement-row"><span>Received from pot (recorded)</span><strong>${money(receivedPot)}</strong></div>` +
+                `<div class="settlement-row"><span>Unpaid pot debt remaining</span><strong>${money(pendingPot)}</strong></div>` +
+                `<div class="settlement-row"><span>Other outstanding debts</span><strong>${money(pendingOthers)}</strong></div>` +
+                `<div class="settlement-row"><span>Final net (including obligations)</span><strong class="${row.net<0?'settlement-loss':'settlement-profit'}">${row.net>0?'+':''}${money(row.net)}</strong></div></div>`;
+        }).join("") + `<p class="ios-row-note">Unpaid pot contributions transfer to ${escapeHtml(winner?.name || 'the pot winner')} when the pot is awarded and are included in net balances. The recorded payment categories are informational; older game history may be incomplete. Do not add them again to the final transfers.</p>`;
+    }
+    const details = document.getElementById("finalSettlementDetails");
+    if (details) details.open = false;
 }

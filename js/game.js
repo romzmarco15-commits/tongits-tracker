@@ -4,7 +4,9 @@ const DEFAULT_RULES = {
     bonusAmount: 2,
     bonusReason: "Quadra",
     roundPot: 2,
-    potWinStreak: 3
+    potWinStreak: 3,
+    sunogExtra: 2,
+    bonusTypes: [{id:"quadra",name:"Quadra",amount:2},{id:"sunog",name:"Sunog",amount:2}]
 };
 
 let game = null;
@@ -147,6 +149,13 @@ function ensureDebtState() {
     }
 
 
+    if (!Array.isArray(game.rules.bonusTypes)) {
+        game.rules.bonusTypes = [
+            { id: "quadra", name: String(game.rules.bonusReason || "Quadra"), amount: Math.max(0, Number(game.rules.bonusAmount) || 2) },
+            { id: "sunog", name: "Sunog", amount: Math.max(0, Number(game.rules.sunogExtra ?? 2)) }
+        ];
+    }
+
     if (game.rules.drawPayment === undefined) {
         game.rules.drawPayment = 2;
     }
@@ -186,42 +195,17 @@ function addDebt(debtorIndex, debt) {
         player.debts = [];
     }
 
-    let amount = roundMoney(debt.amount);
+    const amount = roundMoney(debt.amount);
 
     if (amount <= 0) return;
 
     let existing = null;
 
     if (debt.type === "player") {
-        const creditorIndex = debt.playerIndex;
-        const creditor = game.players[creditorIndex];
-
-        // Net opposite player-to-player debts immediately.
-        if (creditor && Array.isArray(creditor.debts)) {
-            const reverseDebt = creditor.debts.find(
-                item =>
-                    item.type === "player" &&
-                    item.playerIndex === debtorIndex
-            );
-
-            if (reverseDebt) {
-                const offset = roundMoney(Math.min(amount, reverseDebt.amount));
-                amount = roundMoney(amount - offset);
-                reverseDebt.amount = roundMoney(reverseDebt.amount - offset);
-                cleanupDebts(creditor);
-                refreshPlayerBalance(creditor);
-
-                if (amount <= 0) {
-                    refreshPlayerBalance(player);
-                    return;
-                }
-            }
-        }
-
         existing = player.debts.find(
             item =>
                 item.type === "player" &&
-                item.playerIndex === creditorIndex
+                item.playerIndex === debt.playerIndex
         );
     }
 
@@ -556,9 +540,8 @@ function createRoundSnapshot() {
         pot: game.pot,
         round: game.round,
 
-        players: game.players,
+        players: game.players.map(p => { const { avatar, ...rest } = p; return rest; }),
         rules: game.rules,
-        history: game.history,
 
         lastWinner: game.lastWinner,
 
@@ -625,34 +608,23 @@ function prepareNormalRound(type) {
    BONUS
 ========================================= */
 
-function setPendingRoundBonus(reason, amount) {
+function setPendingRoundBonuses(bonuses) {
     if (!pendingRound) return;
-
-    const bonus = Math.max(0, roundMoney(amount));
-    pendingRound.bonusEnabled = bonus > 0;
-    pendingRound.bonusReason = String(reason || game.rules.bonusReason || "Bonus").trim() || "Bonus";
-    pendingRound.bonusAmount = bonus;
-
+    pendingRound.bonuses = bonuses.map(b => ({
+        id: String(b.id), name: String(b.name), amount: Math.max(0, roundMoney(b.amount)),
+        targets: [...b.targets]
+    }));
+    pendingRound.bonusEnabled = pendingRound.bonuses.length > 0;
+    pendingRound.bonusReason = pendingRound.bonuses.map(b => b.name).join(", ");
+    pendingRound.bonusAmount = 0;
     pendingRound.payments.forEach(payment => {
-        const base =
-            payment.baseAmount !== undefined
-                ? payment.baseAmount
-                : payment.amount;
-
-        payment.baseAmount =
-            roundMoney(base);
-
-        payment.bonusAmount =
-            roundMoney(bonus);
-
-        payment.amount =
-            roundMoney(
-                payment.baseAmount +
-                payment.bonusAmount
-            );
+        payment.baseAmount = roundMoney(payment.baseAmount ?? payment.amount);
+        payment.appliedBonuses = pendingRound.bonuses.filter(b => b.targets.includes(payment.from))
+            .map(b => ({name:b.name, amount:b.amount}));
+        payment.bonusAmount = roundMoney(payment.appliedBonuses.reduce((sum,b)=>sum+b.amount,0));
+        payment.amount = roundMoney(payment.baseAmount + payment.bonusAmount);
     });
 }
-
 
 /* =========================================
    BEGIN ROUND SETTLEMENT
@@ -884,53 +856,6 @@ function processQuickPay(
    PENDING POT -> WINNER
 ========================================= */
 
-function captureSettlementState() {
-    return game.players.map((player, index) => ({
-        index,
-        name: player.name,
-        cash: roundMoney(player.cash),
-        balance: roundMoney(player.balance),
-        debts: clone(player.debts || [])
-    }));
-}
-
-function buildSettlementDetails(before, after, winnerIndex, potCashAwarded) {
-    const details = [{
-        type: "pot-award",
-        text: `${game.players[winnerIndex].name} received ${money(potCashAwarded)} from the collected pot.`
-    }];
-
-    before.forEach((beforePlayer, index) => {
-        const afterPlayer = after[index];
-        (beforePlayer.debts || []).forEach(debt => {
-            if (debt.type !== "player") return;
-            const afterDebt = (afterPlayer.debts || []).find(
-                item => item.type === "player" && item.playerIndex === debt.playerIndex
-            );
-            const remaining = afterDebt ? roundMoney(afterDebt.amount) : 0;
-            const settled = roundMoney(debt.amount - remaining);
-            if (settled > 0) {
-                details.push({
-                    type: "debt-settled",
-                    text: `${beforePlayer.name} settled ${money(settled)} owed to ${game.players[debt.playerIndex].name}.`
-                });
-            }
-        });
-    });
-
-    after.forEach(afterPlayer => {
-        (afterPlayer.debts || []).forEach(debt => {
-            if (debt.type !== "player") return;
-            details.push({
-                type: "remaining-debt",
-                text: `${afterPlayer.name} still owes ${game.players[debt.playerIndex].name} ${money(debt.amount)}.`
-            });
-        });
-    });
-    return details;
-}
-
-
 function transferPendingPotToWinner(
     winnerIndex
 ) {
@@ -1027,9 +952,6 @@ function finishRound(takeExistingPot) {
                     .potPendingBefore || 0
             );
 
-        const settlementBefore = captureSettlementState();
-        const collectedPotAwarded = roundMoney(game.pot);
-
         transferPendingPotToWinner(
             winnerIndex
         );
@@ -1044,14 +966,6 @@ function finishRound(takeExistingPot) {
 
         settlePlayerDebts(
             winnerIndex
-        );
-
-        const settlementAfter = captureSettlementState();
-        const settlementDetails = buildSettlementDetails(
-            settlementBefore,
-            settlementAfter,
-            winnerIndex,
-            collectedPotAwarded
         );
 
         game.players.forEach(
@@ -1078,6 +992,7 @@ function finishRound(takeExistingPot) {
             winnerAvatar:
                 clone(winner.avatar),
 
+            bonuses: clone(pendingRound.bonuses || []),
             bonusEnabled: Boolean(pendingRound.bonusEnabled),
 
             bonusReason: pendingRound.bonusReason || game.rules.bonusReason || "Bonus",
@@ -1109,9 +1024,6 @@ function finishRound(takeExistingPot) {
             pendingPotTransferred:
                 transferredPendingPot,
 
-            settlementDetails:
-                clone(settlementDetails),
-
             potKept: false,
 
             potAfter: 0,
@@ -1136,9 +1048,6 @@ function finishRound(takeExistingPot) {
             winnerIndex,
 
             potWon,
-
-            settlementDetails:
-                clone(settlementDetails),
 
             potAfter: 0,
 
@@ -1192,7 +1101,8 @@ function finishRound(takeExistingPot) {
         winnerAvatar:
             clone(winner.avatar),
 
-        bonusEnabled: Boolean(pendingRound.bonusEnabled),
+        bonuses: clone(pendingRound.bonuses || []),
+            bonusEnabled: Boolean(pendingRound.bonusEnabled),
 
         bonusReason: pendingRound.bonusReason || game.rules.bonusReason || "Bonus",
 
@@ -1301,8 +1211,8 @@ function undoLastRound() {
     game.round =
         snapshot.round;
 
-    game.players =
-        snapshot.players;
+    const preservedAvatars = game.players.map(p => p.avatar);
+    game.players = snapshot.players.map((p,i) => ({ ...p, avatar: p.avatar || preservedAvatars[i] }));
 
     game.rules =
         snapshot.rules;
@@ -1380,6 +1290,7 @@ function updateGameSettings(settings) {
         );
 
     game.rules.bonusReason = String(settings.bonusReason || "Bonus").trim() || "Bonus";
+    if (Array.isArray(settings.bonusTypes)) game.rules.bonusTypes = clone(settings.bonusTypes);
 
     game.rules.roundPot =
         Math.max(

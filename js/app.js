@@ -266,6 +266,9 @@ document
 
                 if (type === "Fight") {
                     buildFight();
+                    pendingRound = {type: "Fight", winner: selectedWinner, bonusEnabled: false, payments: []};
+                    selectedRoundBonuses = [];
+                    updateRoundBonusUI("fightBonusTypesRound");
 
                     openOverlay(
                         "fightOverlay"
@@ -354,8 +357,7 @@ document.getElementById(
                         baseAmount: base,
                         bonusAmount: 0,
 
-                        reason:
-                            "Did not fight"
+                        reason: "Did not fight"
                     });
                 }
             }
@@ -376,12 +378,9 @@ document.getElementById(
             bonusEnabled: false,
             payments
         };
-
-        closeOverlay(
-            "fightOverlay"
-        );
-
-        showRoundConfirmation();
+        setPendingRoundBonuses(selectedRoundBonuses);
+        closeOverlay("fightOverlay");
+        document.getElementById("confirmRoundButton").click();
     }
 );
 
@@ -392,6 +391,8 @@ document.getElementById(
     function () {
 
         selectedWinner = null;
+        pendingRound = null;
+        selectedRoundBonuses = [];
 
         closeOverlay(
             "fightOverlay"
@@ -404,43 +405,45 @@ document.getElementById(
    BONUS
 ========================================= */
 
-function updatePendingBonusFromInputs() {
-    if (!pendingRound || !pendingRound.bonusEnabled) return;
-    setPendingRoundBonus(
-        document.getElementById("bonusReason").value,
-        document.getElementById("bonusAmount").value
-    );
-    renderRoundSummary();
+let selectedRoundBonuses = [];
+function updateRoundBonusUI(areaId = "bonusTypesRound") {
+    if (!pendingRound) return;
+    setPendingRoundBonuses(selectedRoundBonuses);
+    const area = document.getElementById(areaId);
+    const opponents = game.players.map((p,i)=>({p,i})).filter(x=>x.i!==pendingRound.winner);
+    area.innerHTML = (game.rules.bonusTypes || []).map(type => {
+        const selected = selectedRoundBonuses.find(b=>b.id===type.id);
+        return `<div class="bonus-type-item">
+          <button type="button" class="bonus-type-choice ${selected?'selected':''}" data-bonus-choice="${escapeAttribute(type.id)}" aria-pressed="${Boolean(selected)}">🎁 ${escapeHtml(type.name)} · ${money(type.amount)} <span>${selected?'✓':''}</span></button>
+          ${selected ? `<div class="bonus-type-options"><label>Amount per affected player <input type="number" step="1" min="0" data-bonus-amount="${escapeAttribute(type.id)}" value="${selected.amount}"></label><div class="player-select-grid">${opponents.map(({p,i})=>`<button type="button" class="player-select-button ${selected.targets.includes(i)?'selected':''}" data-bonus-target="${escapeAttribute(type.id)}" data-index="${i}" aria-pressed="${selected.targets.includes(i)}"><span class="player-select-avatar">${avatarContent(p.avatar)}</span><span class="player-select-name">${escapeHtml(p.name)}</span></button>`).join('')}</div></div>` : ''}
+        </div>`;
+    }).join('') || '<p>No bonus types configured. Add them in Settings.</p>';
+    area.querySelectorAll('[data-bonus-choice]').forEach(button=>button.addEventListener('click',()=>{
+        const id=button.dataset.bonusChoice; const existing=selectedRoundBonuses.find(b=>b.id===id);
+        if(existing) selectedRoundBonuses=selectedRoundBonuses.filter(b=>b.id!==id);
+        else {const type=game.rules.bonusTypes.find(b=>b.id===id);selectedRoundBonuses.push({id:type.id,name:type.name,amount:type.amount,targets:opponents.map(x=>x.i)});}
+        updateRoundBonusUI(areaId);
+    }));
+    area.querySelectorAll('[data-bonus-target]').forEach(button=>button.addEventListener('click',()=>{
+        const b=selectedRoundBonuses.find(b=>b.id===button.dataset.bonusTarget); const i=Number(button.dataset.index);
+        b.targets=b.targets.includes(i)?b.targets.filter(x=>x!==i):[...b.targets,i]; updateRoundBonusUI(areaId);
+    }));
+    area.querySelectorAll('[data-bonus-amount]').forEach(input=>input.addEventListener('input',()=>{
+        const b=selectedRoundBonuses.find(b=>b.id===input.dataset.bonusAmount);b.amount=Math.max(0,Number(input.value)||0);
+        setPendingRoundBonuses(selectedRoundBonuses);if(areaId === "bonusTypesRound") renderRoundSummary();
+    }));
+    if(areaId === "bonusTypesRound") renderRoundSummary();
 }
 
-document.getElementById("bonusToggleButton").addEventListener("click", function () {
-    if (!pendingRound) return;
-
-    if (pendingRound.bonusEnabled) {
-        setPendingRoundBonus(
-            document.getElementById("bonusReason").value,
-            0
-        );
-    } else {
-        const reason = game.rules.bonusReason || "Bonus";
-        const amount = game.rules.bonusAmount;
-        document.getElementById("bonusReason").value = reason;
-        document.getElementById("bonusAmount").value = amount;
-        setPendingRoundBonus(reason, amount);
-    }
-
-    const selected = Boolean(pendingRound.bonusEnabled);
-    document.getElementById("bonusDetails").classList.toggle("hidden", !selected);
-    this.classList.toggle("selected", selected);
-    this.setAttribute("aria-pressed", String(selected));
-    this.querySelector(".bonus-toggle-hint").textContent = selected ? "Selected" : "Tap to add";
-    renderRoundSummary();
-    activateSelectOnFocus();
-});
-
-document.getElementById("bonusReason").addEventListener("input", updatePendingBonusFromInputs);
-document.getElementById("bonusAmount").addEventListener("input", updatePendingBonusFromInputs);
-
+let editedBonusTypes=[];
+function renderBonusTypeSettings(){
+ const area=document.getElementById('bonusTypesSettings');if(!area)return;
+ area.innerHTML=editedBonusTypes.map((b,i)=>`<div class="bonus-settings-row"><input type="text" data-bonus-name="${i}" value="${escapeAttribute(b.name)}" aria-label="Bonus name"><input type="number" min="0" step="1" data-bonus-rate="${i}" value="${b.amount}" aria-label="Bonus amount"><button type="button" data-remove-bonus="${i}" aria-label="Remove bonus">✕</button></div>`).join('');
+ area.querySelectorAll('[data-bonus-name]').forEach(el=>el.addEventListener('input',()=>editedBonusTypes[Number(el.dataset.bonusName)].name=el.value));
+ area.querySelectorAll('[data-bonus-rate]').forEach(el=>el.addEventListener('input',()=>editedBonusTypes[Number(el.dataset.bonusRate)].amount=Math.max(0,Number(el.value)||0)));
+ area.querySelectorAll('[data-remove-bonus]').forEach(el=>el.addEventListener('click',()=>{editedBonusTypes.splice(Number(el.dataset.removeBonus),1);renderBonusTypeSettings()}));
+}
+document.getElementById('addBonusTypeButton').addEventListener('click',()=>{editedBonusTypes.push({id:'custom-'+Date.now()+'-'+editedBonusTypes.length,name:'New Bonus',amount:2});renderBonusTypeSettings()});
 
 /* =========================================
    CONFIRM ROUND
@@ -576,7 +579,7 @@ document.getElementById(
     "confirmQuickPayButton"
 ).addEventListener(
     "click",
-    async function () {
+    function () {
 
         const receiverIndex = quickPayReceiverIndex;
 
@@ -641,23 +644,14 @@ document.getElementById(
             "quickPayOverlay"
         );
 
-        // Quick Pay is already confirmed and recorded in History.
-        // Keep the OLD balances visible while the money travels, then refresh the
-        // player cards AFTER the animation so the payer/payee amount changes are obvious.
-        const animationPayments = result.payments.map(payment => ({
-            from: payment.fromIndex,
-            amount: payment.amount
-        }));
-
-        await animateWinnerPayments(
-            animationPayments,
-            result.receiverIndex
-        );
-
-        // Show the new balances only after the transfer completes.
-        refreshAllBalances();
-        saveGame();
         renderGame();
+
+        showMessage(
+            "Payment Recorded",
+            `${result.receiverName} received ${money(
+                result.amountPerPlayer
+            )} from each selected player for ${result.reason}.`
+        );
     }
 );
 
@@ -953,8 +947,8 @@ document.getElementById(
     "confirmClearDataButton"
 ).addEventListener(
     "click",
-    function () {
-        if (!clearAllAppData()) {
+    async function () {
+        if (!await clearAllAppData()) {
             closeOverlay("clearDataOverlay");
             showMessage(
                 "Unable to Clear Data",
@@ -997,6 +991,8 @@ document.getElementById(
     "click",
     function () {
 
+        game.rules.bonusTypes = editedBonusTypes.filter(b=>b.name.trim()).map(b=>({...b,name:b.name.trim()}));
+        localStorage.setItem("tongitsShowBreakdown", String(document.getElementById("settingPaymentBreakdown").checked));
         updateGameSettings({
             drawPayment:
                 document.getElementById(
@@ -1008,11 +1004,9 @@ document.getElementById(
                     "settingTongitsPayment"
                 ).value,
 
-            bonusReason:
-                document.getElementById("settingBonusReason").value,
-
-            bonusAmount:
-                document.getElementById("settingBonusAmount").value,
+            bonusReason: game.rules.bonusReason,
+            bonusAmount: game.rules.bonusAmount,
+            bonusTypes: game.rules.bonusTypes,
 
             initialPot:
                 document.getElementById(
@@ -1144,24 +1138,14 @@ document.getElementById(
    MESSAGE
 ========================================= */
 
-let afterMessageClose = null;
-
-function closeMessageAndContinue() {
-    closeOverlay("messageOverlay");
-
-    const callback = afterMessageClose;
-    afterMessageClose = null;
-
-    if (typeof callback === "function") {
-        callback();
-    }
-}
-
 document.getElementById(
     "closeMessageButton"
 ).addEventListener(
     "click",
-    closeMessageAndContinue
+    () =>
+        closeOverlay(
+            "messageOverlay"
+        )
 );
 
 
@@ -1209,6 +1193,8 @@ document
                     "fightOverlay"
                 ) {
                     selectedWinner = null;
+                    pendingRound = null;
+                    selectedRoundBonuses = [];
                 }
 
                 if (
@@ -1238,10 +1224,10 @@ document
    LOAD
 ========================================= */
 
-if (loadGame()) {
+loadGameAsync().then(loaded => {
+if (loaded) {
     ensureDebtState();
     showGame();
-
 } else {
     document.getElementById(
         "initialPot"
@@ -1249,6 +1235,7 @@ if (loadGame()) {
 
     showFreshSetup();
 }
+}).catch(error => { console.error("Game startup failed",error); showMessage("Load Error","Unable to load your saved game. Please do not clear app data."); });
 /* =========================================
    EASTER EGGS
 ========================================= */
@@ -1268,7 +1255,7 @@ function eggToast(message, duration = 2200) {
 
 function openPotPrediction() {
     if (!game || !game.players || !game.players.length) return;
-    document.getElementById("predictionRoulette").textContent = "Tap anywhere to predict";
+    document.getElementById("predictionRoulette").textContent = "Tap PREDICT";
     document.getElementById("predictionResult").textContent = "";
     document.getElementById("runPredictionButton").disabled = false;
     openOverlay("predictionOverlay");
@@ -1289,66 +1276,35 @@ document.getElementById("closePredictionButton").addEventListener("click", () =>
     if (!predictionRunning) closeOverlay("predictionOverlay");
 });
 
-function runPotPrediction() {
+document.getElementById("runPredictionButton").addEventListener("click", function () {
     if (!game || predictionRunning) return;
-
     predictionRunning = true;
-    const button = document.getElementById("runPredictionButton");
-    if (button) button.disabled = true;
-
-    const modal = document.querySelector("#predictionOverlay .prediction-modal");
+    this.disabled = true;
     const roulette = document.getElementById("predictionRoulette");
     const result = document.getElementById("predictionResult");
-
-    if (modal) modal.classList.add("prediction-awakening");
     roulette.classList.add("spinning");
-    result.textContent = "The cards are listening...";
-
+    result.textContent = "Consulting extremely reliable sources...";
     let ticks = 0;
     clearInterval(predictionTimer);
     predictionTimer = setInterval(() => {
         const p = game.players[ticks % game.players.length];
-        roulette.textContent = `${p.name} ${["🔮","⚡","🪙","✨","🔥"][ticks % 5]}`;
+        roulette.textContent = `${p.name} ${["🔮","🪙","✨"][ticks % 3]}`;
         if (typeof playSoundEffect === "function") playSoundEffect("roll");
         ticks++;
-    }, 82);
-
+    }, 90);
     setTimeout(() => {
         clearInterval(predictionTimer);
         const winnerIndex = Math.floor(Math.random() * game.players.length);
         const player = game.players[winnerIndex];
-
         roulette.classList.remove("spinning");
-        roulette.classList.add("prediction-reveal");
-        roulette.textContent = `🔮 ${player.name} 🔮`;
-        result.textContent = `THE PROPHECY CHOOSES ${player.name.toUpperCase()}!`;
-
-        if (modal) {
-            modal.classList.remove("prediction-awakening");
-            modal.classList.add("prediction-impact");
-            setTimeout(() => modal.classList.remove("prediction-impact"), 850);
-        }
-
+        roulette.textContent = `🔮 ${player.name}`;
+        result.textContent = `Prediction: ${player.name} will win the pot!`;
         if (typeof playSoundEffect === "function") playSoundEffect("reveal");
-        game.easterPrediction = { playerIndex: winnerIndex, playerName: player.name, round: game.round };
+        game.easterPrediction = { playerIndex: winnerIndex, playerName: player.name };
         saveGame();
-
-        setTimeout(() => roulette.classList.remove("prediction-reveal"), 1200);
         predictionRunning = false;
-        if (button) button.disabled = false;
+        document.getElementById("runPredictionButton").disabled = false;
     }, 2400);
-}
-
-document.getElementById("runPredictionButton").addEventListener("click", function (event) {
-    event.stopPropagation();
-    runPotPrediction();
-});
-
-// Only taps INSIDE the prediction popup trigger the prediction.
-// Tapping the dark backdrop remains a normal outside-click and must not start it.
-document.querySelector("#predictionOverlay .prediction-modal").addEventListener("click", function (event) {
-    if (event.target.closest("#closePredictionButton")) return;
-    runPotPrediction();
 });
 
 // Long-press a player card/avatar: Main Character Energy.
@@ -1395,3 +1351,20 @@ function runPostRenderEasterEggs() {
         setTimeout(() => area.classList.remove("easter-confetti"), 1300);
     }
 }
+
+// Small disclosure button at the top-right of each player card.
+document.addEventListener("click", event => {
+    const button = event.target.closest("[data-details-player]");
+    if (!button || !game || localStorage.getItem("tongitsShowBreakdown") === "false") return;
+    const index = Number(button.dataset.detailsPlayer);
+    const card = button.closest("[data-player-card]");
+    const panel = card?.querySelector(".player-details-collapse");
+    if (!panel) return;
+    const open = !expandedPlayerDetails.has(index);
+    if (open) expandedPlayerDetails.add(index); else expandedPlayerDetails.delete(index);
+    panel.classList.toggle("expanded", open);
+    button.setAttribute("aria-expanded", String(open));
+    button.setAttribute("aria-label", `${open ? "Hide" : "Show"} payment details`);
+});
+
+document.getElementById("viewSettlementButton").addEventListener("click", () => { renderFinalSettlement(); openOverlay("gameFinishedOverlay"); });

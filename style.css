@@ -2380,65 +2380,38 @@ body[data-theme="light"] .modal { background: rgba(249,249,249,.97); }
 .sound-setting-button.selected { border-color:#0a84ff; box-shadow:0 0 0 2px rgba(10,132,255,.18); }
 .sound-setting-help { margin:0 4px 8px; opacity:.62; font-size:.82rem; line-height:1.35; }
 
+/* Payment breakdown and final settlement */
+.settlement-panel{max-height:48vh;overflow:auto;text-align:left;margin:16px 0;padding:10px 2px}.settlement-panel h3{margin:18px 0 10px}.settlement-row{display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid rgba(127,127,127,.2);padding:11px 3px}.settlement-row small{display:block;opacity:.65}.settlement-profit{color:#30b777}.settlement-loss{color:#f05c63}.settlement-row strong{white-space:nowrap}
+/* End-of-game summary followed by optional expandable accounting */
+.final-settlement-details{margin:18px 0 8px;text-align:left;border-top:1px solid rgba(127,127,127,.25);padding-top:12px}
+.final-settlement-details summary{cursor:pointer;padding:12px 10px;border-radius:12px;background:rgba(127,127,127,.12);font-weight:650;list-style-position:inside}
+.final-settlement-details[open] summary{margin-bottom:12px}
+.settlement-player-detail{padding:10px 0 14px;border-bottom:1px solid rgba(127,127,127,.25)}
+.settlement-player-detail h4{margin:8px 0}
 
-/* =========================================
-   ENHANCED PREDICTION + EASTER EGG FEEDBACK
-========================================= */
-#predictionOverlay { cursor:pointer; }
-.prediction-modal { position:relative; }
-.prediction-modal::before {
-    content:""; position:absolute; inset:-35%; pointer-events:none; opacity:0;
-    background:conic-gradient(from 0deg, transparent, rgba(155,89,255,.22), transparent, rgba(255,193,7,.18), transparent);
-}
-.prediction-modal.prediction-awakening::before { opacity:1; animation:predictionAura 1.2s linear infinite; }
-.prediction-modal.prediction-impact { animation:predictionImpact .72s cubic-bezier(.18,.89,.32,1.28); }
-.prediction-roulette.spinning { animation:predictionCharge .16s ease-in-out infinite alternate; box-shadow:0 0 32px rgba(155,89,255,.22); }
-.prediction-roulette.prediction-reveal { animation:predictionReveal .9s cubic-bezier(.17,.89,.32,1.35); font-size:1.65rem; box-shadow:0 0 46px rgba(255,193,7,.35); }
-.prediction-result { font-size:1.25rem; letter-spacing:.02em; }
-.prediction-tap-hint {
-    width:100%; min-height:48px; border:0; background:transparent; color:inherit;
-    opacity:.7; font:inherit; font-size:.82rem; font-weight:900; letter-spacing:.12em; cursor:pointer;
-}
-.easter-toast {
-    bottom:calc(42px + env(safe-area-inset-bottom));
-    max-width:min(92vw,560px);
-    padding:20px 26px;
-    border-radius:24px;
-    font-size:clamp(1.05rem, 4.5vw, 1.4rem);
-    line-height:1.25;
-    letter-spacing:.01em;
-    box-shadow:0 16px 50px rgba(0,0,0,.42), 0 0 0 1px rgba(255,255,255,.12);
-    animation:easterToastEntrance .48s cubic-bezier(.18,.89,.32,1.28);
-}
-@keyframes predictionAura { to { transform:rotate(360deg); } }
-@keyframes predictionCharge { from { transform:scale(.985); filter:brightness(.9); } to { transform:scale(1.045); filter:brightness(1.25); } }
-@keyframes predictionReveal { 0%{transform:scale(.55);opacity:.15} 45%{transform:scale(1.18)} 70%{transform:scale(.96)} 100%{transform:scale(1);opacity:1} }
-@keyframes predictionImpact { 0%{transform:scale(1)} 35%{transform:scale(1.045)} 55%{transform:scale(.985)} 100%{transform:scale(1)} }
-@keyframes easterToastEntrance { from{opacity:0;transform:translateX(-50%) translateY(30px) scale(.82)} to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)} }
+/* Inline per-player payment details */
+.player-top{position:relative;padding-right:40px}
+.player-details-toggle{position:absolute;right:0;top:0;z-index:2;width:35px;height:35px;border-radius:11px;border:1px solid rgba(127,127,127,.22);background:rgba(127,127,127,.10);color:inherit;display:flex;align-items:center;justify-content:center;gap:2px;font-size:16px;cursor:pointer}
+.player-details-toggle .details-chevron{font-size:13px;transition:transform .25s ease}
+.player-details-toggle[aria-expanded="true"] .details-chevron{transform:rotate(180deg)}
+.player-details-collapse{display:grid;grid-template-rows:0fr;opacity:0;transition:grid-template-rows .3s ease,opacity .25s ease;min-width:0}
+.player-details-collapse.expanded{grid-template-rows:1fr;opacity:1}
+.player-details-inner{min-height:0;overflow:hidden;text-align:left}
+.player-details-collapse.expanded .player-details-inner{padding:10px 2px 12px}
+.player-details-section{padding:8px 0;border-top:1px solid rgba(127,127,127,.20)}
+.player-details-section>strong{display:block;margin-bottom:5px;font-size:.86rem}
+.player-details-inner .settlement-row{padding:6px 1px;font-size:.85rem}
+.player-details-inner .ios-row-note{font-size:.76rem;opacity:.7;margin:6px 0}
+@media(prefers-reduced-motion:reduce){.player-details-collapse,.player-details-toggle .details-chevron{transition:none}}
 
-/* Final pot settlement breakdown */
-.settlement-breakdown {
-    width: 100%;
-    box-sizing: border-box;
-    margin: 14px 0 18px;
-    padding: 14px 16px;
-    border: 1px solid rgba(0,0,0,.10);
-    border-radius: 16px;
-    background: rgba(0,0,0,.035);
-    text-align: left;
-}
-.settlement-title {
-    font-size: 12px;
-    font-weight: 900;
-    letter-spacing: .10em;
-    margin-bottom: 9px;
-    opacity: .65;
-}
-.settlement-row {
-    padding: 7px 0;
-    border-top: 1px solid rgba(0,0,0,.07);
-    font-size: 14px;
-    font-weight: 700;
-    line-height: 1.35;
-}
-.settlement-row.remaining-debt { font-weight: 900; }
+/* Configurable multi-bonus controls */
+.bonus-type-item{padding:10px 0;border-bottom:1px solid var(--border-color,rgba(128,128,128,.2))}.bonus-type-choice{width:100%;padding:14px;border-radius:14px;display:flex;justify-content:space-between;background:var(--card-bg,rgba(128,128,128,.12));color:inherit;border:1px solid rgba(128,128,128,.25);font:inherit}.bonus-type-choice.selected{border-color:#0a84ff;background:rgba(10,132,255,.13)}.bonus-type-options{padding:12px 4px}.bonus-type-options input{width:110px;margin-left:8px}.bonus-settings-row{display:flex;gap:8px;margin-bottom:8px}.bonus-settings-row input:first-child{flex:1;min-width:0}.bonus-settings-row input[type=number]{width:80px}.bonus-settings-row button{padding:8px}.bonus-types-round{margin:8px 0 16px}
+
+/* Keep expanded payment details confined to their own player card. */
+.players { align-items: start; }
+.players > .player { align-self: start; }
+
+/* Compact debt indicator; expanded details own the creditor breakdown. */
+.player-pending-compact{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;margin:-5px 0 12px;font-size:.78rem}
+.player-pending-compact span{color:var(--text-muted);font-weight:700}
+.player-pending-compact strong{font-weight:800;color:var(--text)}
