@@ -700,6 +700,13 @@ document.getElementById(
     }
 );
 
+document.getElementById("finishedContinueCycleButton").addEventListener("click", function () {
+    if (!continuePotCycle()) return;
+    closeOverlay("finishedNewGameOverlay");
+    renderGame();
+    showMessage("New Pot Started", `Same financial session: balances, debts, and history are preserved. ${money(game.initialPot)} per player was added to the new pot (or recorded as debt).`);
+});
+
 document.getElementById(
     "finishedKeepMoneyButton"
 ).addEventListener(

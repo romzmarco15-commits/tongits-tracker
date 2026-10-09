@@ -1322,6 +1322,42 @@ function updateGameSettings(settings) {
 }
 
 
+/* Continue the same financial session after a pot is won.
+   Keep original starting balances, cash, debts, and audit history intact. */
+function continuePotCycle() {
+    if (!game || !game.finished) return false;
+    ensureDebtState();
+    const nextCycle = Math.max(1, Number(game.potCycle || 1) + 1);
+    game.potCycle = nextCycle;
+    game.pot = 0;
+    game.round = 1;
+    game.lastWinner = null;
+    game.finished = false;
+    game.finishedBy = null;
+    game.finishedPot = 0;
+    game.players.forEach(player => { player.streak = 0; });
+    const contributions = game.players.map((player, index) => {
+        const contribution = contributeToPot(index, game.initialPot);
+        return { fromIndex: index, from: player.name, ...contribution };
+    });
+    game.history.push({
+        eventType: "potCycleStart",
+        type: "New Pot Cycle",
+        round: 0,
+        potCycle: nextCycle,
+        contributions,
+        potAfter: game.pot,
+        createdAt: Date.now()
+    });
+    // Do not allow Undo to cross a pot-cycle boundary and revert a prior pot win.
+    game.undoStack = [];
+    pendingRound = null;
+    selectedWinner = null;
+    refreshAllBalances();
+    saveGame();
+    return true;
+}
+
 /* =========================================
    RESTART KEEP MONEY
 ========================================= */

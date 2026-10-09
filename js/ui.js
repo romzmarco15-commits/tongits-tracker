@@ -1044,9 +1044,8 @@ function renderGame() {
                     : "";
 
             const outstandingTotal = roundMoney((player.debts || []).reduce((sum, debt) => sum + Math.max(0, Number(debt.amount) || 0), 0));
-            const debtHtml = outstandingTotal > 0
-                ? `<div class="player-pending player-pending-compact" aria-label="Outstanding debt ${money(outstandingTotal)}"><span>Pending</span><strong>${money(outstandingTotal)}</strong></div>`
-                : "";
+            // Show the creditor breakdown directly on the player card, even when details are collapsed.
+            const debtHtml = outstandingTotal > 0 ? playerDebtHtml(player) : "";
             const showDetails = localStorage.getItem("tongitsShowBreakdown") !== "false";
             const detailsExpanded = expandedPlayerDetails.has(index);
 
@@ -1744,6 +1743,15 @@ function openHistory() {
                 : "";
 
 
+            if (entry.eventType === "potCycleStart") {
+                const cycleContributions = (entry.contributions || []).map(c =>
+                    `<div class="settlement-row"><span>${escapeHtml(c.from || game.players[c.fromIndex]?.name || "Player")}</span><strong>${money(c.paid || 0)} paid${Number(c.pending || 0) > 0 ? ` · ${money(c.pending)} pending` : ""}</strong></div>`
+                ).join("");
+                item.innerHTML = `<div class="history-header"><strong>🔄 Pot Cycle ${Number(entry.potCycle) || 2} Started</strong></div><p class="ios-row-note">Continuing the same balances, debts and payment history.</p>${cycleContributions}`;
+                container.appendChild(item);
+                return;
+            }
+
             /* QUICK PAY */
 
             if (
@@ -2060,8 +2068,8 @@ function playerPaymentDetailsHtml(index) {
     const summary = paymentSummaryFor(index);
     const total = map => roundMoney(Array.from(map.values()).reduce((a,b)=>a+b,0));
     const rows = map => Array.from(map.entries()).filter(([,v])=>v>0).map(([name,amount])=>`<div class="settlement-row"><span>${escapeHtml(name)}</span><strong>${money(amount)}</strong></div>`).join("") || '<p class="ios-row-note">None yet</p>';
-    const debtRows = (p.debts||[]).filter(d=>Number(d.amount)>0).map(d=>`<div class="settlement-row"><span>${d.type==="pot"?"Pot":d.type==="player"?escapeHtml(game.players[d.playerIndex]?.name||"Player"):"Other"}</span><strong>${money(d.amount)}</strong></div>`).join("") || '<p class="ios-row-note">None</p>';
-    return `<div class="player-details-section"><strong>Paid out · ${money(total(summary.paid))}</strong>${rows(summary.paid)}</div><div class="player-details-section"><strong>Received · ${money(total(summary.received))}</strong>${rows(summary.received)}</div><div class="player-details-section"><strong>Still owed</strong>${debtRows}</div><p class="ios-row-note">Starting ${money(p.startingBalance)} · Current net ${money(p.balance)}. Recorded actual payments only; older history may be incomplete.</p>`;
+    // Debts already appear above the expand/collapse control on the player card.
+    return `<div class="player-details-section"><strong>Paid out · ${money(total(summary.paid))}</strong>${rows(summary.paid)}</div><div class="player-details-section"><strong>Received · ${money(total(summary.received))}</strong>${rows(summary.received)}</div><p class="ios-row-note">Starting ${money(p.startingBalance)} · Current net ${money(p.balance)}. Recorded actual payments only; older history may be incomplete.</p>`;
 }
 function computeFinalSettlement() {
     const rows=game.players.map((p,i)=>({index:i,name:p.name,start:Number(p.startingBalance||0),end:Number(p.balance||0),net:roundMoney(Number(p.balance||0)-Number(p.startingBalance||0))}));
