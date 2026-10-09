@@ -746,6 +746,8 @@
 >
 
     <div class="modal game-finished-modal">
+        <div id="potConfetti" class="pot-confetti" aria-hidden="true"></div>
+        <div class="pot-victory-banner">🎉 YEEEHEY! 🎉</div>
 
         <div class="game-finished-fire">
             🔥🏆
@@ -777,10 +779,15 @@
 
         </div>
 
+        <details id="finalSettlementToggle" class="final-settlement-toggle">
+          <summary>💸 SHOW FINAL SETTLEMENT <span class="settlement-chevron">⌄</span></summary>
+          <div class="final-settlement-body">
         <div id="finalSettlementContent" class="settlement-panel"></div>
         <details id="finalSettlementDetails" class="final-settlement-details">
           <summary>📊 View Settlement Details</summary>
           <div id="finalSettlementDetailsContent"></div>
+        </details>
+          </div>
         </details>
         <p class="modal-subtitle">
             The game is finished.

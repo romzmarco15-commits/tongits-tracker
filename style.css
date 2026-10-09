@@ -2415,3 +2415,26 @@ body[data-theme="light"] .modal { background: rgba(249,249,249,.97); }
 .player-pending-compact{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 10px;margin:-5px 0 12px;font-size:.78rem}
 .player-pending-compact span{color:var(--text-muted);font-weight:700}
 .player-pending-compact strong{font-weight:800;color:var(--text)}
+
+/* Pot victory presentation and collapsible final settlement */
+.game-finished-modal {position:relative;overflow-x:hidden;isolation:isolate;}
+.game-finished-modal > :not(.pot-confetti) {position:relative;z-index:1;}
+.pot-victory-banner {font-size:clamp(22px,5vw,34px);font-weight:900;letter-spacing:.07em;color:#f4b836;text-shadow:0 2px 12px rgba(242,171,32,.28);margin:4px auto 12px;}
+.pot-celebrating .pot-victory-banner {animation:victoryPop .7s cubic-bezier(.2,1.5,.4,1) both;}
+.pot-celebrating .game-finished-fire {animation:victoryBounce 1s ease-in-out 3;}
+.pot-celebrating .finished-pot-box {animation:victoryGlow 1.3s ease-in-out 3;}
+.pot-confetti {position:absolute!important;inset:0;z-index:3!important;pointer-events:none;overflow:hidden;}
+.pot-confetti i {position:absolute;left:var(--x);top:-25px;width:9px;height:16px;border-radius:2px;opacity:0;animation:potConfettiFall var(--duration) var(--delay) ease-in forwards;}
+@keyframes potConfettiFall {0%{transform:translate3d(0,-30px,0) rotate(0);opacity:1}85%{opacity:1}100%{transform:translate3d(var(--drift),min(85vh,850px),0) rotate(920deg);opacity:0}}
+@keyframes victoryPop {0%{transform:scale(.45);opacity:0}65%{transform:scale(1.13);opacity:1}100%{transform:scale(1)}}
+@keyframes victoryBounce {0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-10px) scale(1.09)}}
+@keyframes victoryGlow {0%,100%{filter:drop-shadow(0 0 0 transparent)}50%{filter:drop-shadow(0 0 18px rgba(255,206,62,.85))}}
+.final-settlement-toggle {margin:16px 0 10px;text-align:left;}
+.final-settlement-toggle > summary {display:flex;justify-content:space-between;align-items:center;cursor:pointer;list-style:none;padding:14px 16px;border-radius:14px;background:rgba(127,127,127,.14);font-weight:800;user-select:none;}
+.final-settlement-toggle > summary::-webkit-details-marker {display:none;}
+.final-settlement-toggle[open] > summary {border-radius:14px 14px 0 0;}
+.final-settlement-toggle .settlement-chevron {transition:transform .25s ease;font-size:23px;line-height:1;}
+.final-settlement-toggle[open] .settlement-chevron {transform:rotate(180deg);}
+.final-settlement-body {padding:8px 4px 12px;animation:settlementSlide .25s ease-out;}
+@keyframes settlementSlide {from{opacity:0;transform:translateY(-9px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.pot-confetti i,.pot-celebrating .pot-victory-banner,.pot-celebrating .game-finished-fire,.pot-celebrating .finished-pot-box,.final-settlement-body{animation:none!important}}

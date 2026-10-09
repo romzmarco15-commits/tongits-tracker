@@ -40,6 +40,11 @@ function playSoundEffect(name) {
     if (name === "coin") { tone(1250,.07,.035,"sine"); tone(1750,.06,.022,"sine",.035); }
     else if (name === "coins") { [0,.07,.14].forEach((d,i)=>{tone(1050+i*180,.07,.03,"sine",d);tone(1650+i*120,.05,.016,"sine",d+.025);}); }
     else if (name === "win") { [523,659,784,1047].forEach((f,i)=>tone(f,.16,.04,"sine",i*.09)); }
+    else if (name === "yehey") {
+        // A playful victory fanfare, synthesized locally without external audio files.
+        [523,659,784,1047,988,1175,1319,1568].forEach((f,i)=>tone(f,i<4?.19:.25,.043,i%3===0?"triangle":"sine",i*.105));
+        [0,.14,.28].forEach((d,i)=>tone(220+i*110,.09,.025,"triangle",.88+d));
+    }
     else if (name === "potwin") { [392,523,659,784,1047,1319].forEach((f,i)=>tone(f,.22,.045,"triangle",i*.075)); }
     else if (name === "roll") { tone(440 + Math.random()*520,.045,.022,"square"); }
     else if (name === "reveal") { [659,784,988,1319].forEach((f,i)=>tone(f,.18,.04,"sine",i*.075)); }

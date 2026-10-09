@@ -1362,9 +1362,12 @@ function showGameFinished(result) {
         money(result.potWon);
 
     renderFinalSettlement();
+    const settlementToggle = document.getElementById("finalSettlementToggle");
+    if (settlementToggle) settlementToggle.open = false;
     openOverlay(
         "gameFinishedOverlay"
     );
+    launchPotVictoryCelebration();
 
     if (game.easterPrediction) {
         const predicted = game.easterPrediction.playerIndex;
@@ -2110,4 +2113,32 @@ function renderFinalSettlement() {
     }
     const details = document.getElementById("finalSettlementDetails");
     if (details) details.open = false;
+}
+
+
+/* A one-shot, offline-friendly celebration for a confirmed pot winner. */
+function launchPotVictoryCelebration() {
+    const overlay = document.getElementById("gameFinishedOverlay");
+    const confetti = document.getElementById("potConfetti");
+    if (!overlay || !confetti) return;
+    overlay.classList.remove("pot-celebrating");
+    void overlay.offsetWidth;
+    overlay.classList.add("pot-celebrating");
+    confetti.replaceChildren();
+    if (!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+        const colors = ["#ffd54f", "#ff6b8b", "#6ad9ff", "#a98bff", "#7ef0b2", "#ffffff"];
+        const fragment = document.createDocumentFragment();
+        for (let i = 0; i < 100; i++) {
+            const piece = document.createElement("i");
+            piece.style.setProperty("--x", `${Math.random()*100}%`);
+            piece.style.setProperty("--drift", `${(Math.random()-.5)*210}px`);
+            piece.style.setProperty("--delay", `${Math.random()*.9}s`);
+            piece.style.setProperty("--duration", `${2.4+Math.random()*2.2}s`);
+            piece.style.backgroundColor = colors[i % colors.length];
+            fragment.appendChild(piece);
+        }
+        confetti.appendChild(fragment);
+    }
+    if (typeof playSoundEffect === "function") playSoundEffect("yehey");
+    window.setTimeout(() => { confetti.replaceChildren(); overlay.classList.remove("pot-celebrating"); }, 5500);
 }
